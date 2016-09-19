@@ -1,0 +1,10 @@
+---
+DJANGO_RPM_DEPS:
+  - postgresql-devel
+  - python-devel
+  - gcc
+  - python-virtualenv
+DJANGO_USER: django
+DJANGO_ROOT: /django
+DJANGO_VENV: /venv
+DJANGO_STATIC_ROOT: /static

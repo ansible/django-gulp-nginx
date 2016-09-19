@@ -1,0 +1,39 @@
+---
+- name: Install dumb init
+  get_url: dest=/usr/bin/dumb-init url=https://github.com/Yelp/dumb-init/releases/download/v1.0.2/dumb-init_1.0.2_amd64 mode=0775 validate_certs=no
+- name: Install python deps
+  yum: name="{{ item }}" state=latest update_cache=yes
+  with_items: DJANGO_RPM_DEPS
+- name: Make Django user
+  user: name="{{ DJANGO_USER }}" state=present createhome=yes home="{{ DJANGO_ROOT }}"
+- name: Make virtualenv dir
+  file: name="{{ DJANGO_VENV }}" state=directory owner="{{ DJANGO_USER }}"
+- name: Make staticfiles dir
+  file: name="{{ DJANGO_STATIC_ROOT }}" state=directory owner="{{ DJANGO_USER }}"
+- name: Setup virtualenv
+  command: virtualenv . chdir="{{ DJANGO_VENV }}" creates="{{ DJANGO_VENV }}/bin/python"
+  remote_user: "{{ DJANGO_USER }}"
+- name: Copy source
+  copy: src="{{ lookup('pipe','dirname `pwd`') }}/" dest="{{ DJANGO_ROOT }}" owner="{{ DJANGO_USER }}"
+  remote_user: "{{ DJANGO_USER }}"
+- name: Install requirements
+  pip: executable="{{ DJANGO_VENV }}/bin/pip" requirements="{{ DJANGO_ROOT }}/requirements.txt"
+  remote_user: "{{ DJANGO_USER }}"
+- name: Collect staticfiles
+  command: "{{ DJANGO_VENV }}/bin/python manage.py collectstatic --noinput"
+  args:
+    chdir: "{{ DJANGO_ROOT }}"
+  remote_user: "{{ DJANGO_USER }}"
+- name: Itemize Django static assets
+  find: paths="{{ DJANGO_STATIC_ROOT }}" recurse=yes
+  register: django_assets
+- name: Fetch Django static assets
+  fetch: src="{{ item.path }}" dest=/tmp
+  with_items: django_assets.files
+- name: Wait for the database to come up...
+  wait_for: host=postgresql port=5432 delay=10
+- name: Apply database migrations
+  command: "{{ DJANGO_VENV }}/bin/python manage.py migrate --noinput"
+  args:
+    chdir: "{{ DJANGO_ROOT }}"
+  remote_user: "{{ DJANGO_USER }}"

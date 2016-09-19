@@ -1,0 +1,14 @@
+---
+- hosts: django
+  roles:
+    - django-gunicorn
+- hosts: gulp
+  roles:
+    - gulp-static
+- hosts: nginx
+  roles:
+    - role: j00bar.nginx-container
+      ASSET_PATHS:
+        - /tmp/django/static/
+        - /tmp/gulp/node/dist/
+
