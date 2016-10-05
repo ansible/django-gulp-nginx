@@ -1,7 +1,7 @@
 galaxy_info:
   author: Chris Houseknecht 
-  description: It does things 
-  company: Red Hat  
+  description: Ansible Container Django demo 
+  company: Ansible by Red Hat  
 
   # If the issue tracker for your role is not on GitHub, uncomment the
   # next line and provide a value
@@ -16,7 +16,7 @@ galaxy_info:
   # - CC-BY
   license: Apache 
 
-  min_ansible_container_version: 0.2.0-pre
+  min_ansible_container_version: 0.2.0
 
   # Optionally specify the branch Galaxy will use when accessing the GitHub
   # repo for this role. During role install, if no tags are available,
@@ -26,8 +26,8 @@ galaxy_info:
   # (usually master) will be used.
   #github_branch:
 
-  tags: []
-    # List tags for your app here, one per line. A tag is a keyword that describes and categorizes the app.
-    # Users will find your app by searching for tags. Be sure to remove the '[]' above.
-    #
-    # NOTE: A tag is limited to a single word comprised of alphanumeric characters. Maximum 20 tags.
+  tags:
+  - container
+  - django
+  - demo
+
