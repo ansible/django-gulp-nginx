@@ -1,2 +1,14 @@
 .idea/
+.npm/
+.ansible
 dist/
+*.retry
+*.pyc
+*.log
+.v8flags*
+.bash_history
+.cache
+ansible/roles/django-gulp-nginx-openshift/
+ansible/roles/django-gulp-nginx-kubernetes/
+ansible/shipit-openshift.yml
+ansible/shipit-kubernetes.yml

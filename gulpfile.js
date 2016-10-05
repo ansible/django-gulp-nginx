@@ -13,11 +13,11 @@ const postcss  = require('gulp-postcss')
 const sass     = require('gulp-sass')
 const maps     = require('gulp-sourcemaps')
 const notifier = require('node-notifier')
-const rollup   = require('rollup')
-const babel    = require('rollup-plugin-babel')
-const commonjs = require('rollup-plugin-commonjs')
-const resolve  = require('rollup-plugin-node-resolve')
-const uglify   = require('rollup-plugin-uglify')
+const uglify   = require('gulp-uglify')
+const concat   = require('gulp-concat')
+const proxy    = require('http-proxy-middleware')
+const util     = require('gulp-util')
+const history  = require('connect-history-api-fallback')
 
 // error handler
 
@@ -33,16 +33,34 @@ const onError = function(error) {
 
 // clean
 
-gulp.task('clean', function() {del('dist')})
+gulp.task('clean', function() {
+   return del([
+     'dist/fonts/**',
+     'dist/images/**',
+     'dist/js/**',
+     'dist/lib/**',
+     'dist/templates/**',
+     'dist/videos/**',
+     'dist/favicon.ico'     
+   ])
+})
 
 // html
 
 gulp.task('html', ['images'], function() {
-  return gulp.src('src/html/**/*.html')
+  return gulp.src('src/templates/**/*.html')
     .pipe(plumber({ errorHandler: onError }))
     .pipe(include({ prefix: '@', basepath: 'dist/images/' }))
     .pipe(htmlmin({ collapseWhitespace: true, removeComments: true }))
-    .pipe(gulp.dest('dist'))
+    .pipe(gulp.dest('dist/templates'))
+})
+
+gulp.task('index', function() {
+  return gulp.src('src/index.html')
+    .pipe(plumber({ errorHandler: onError }))
+    .pipe(include({ prefix: '@', basepath: 'dist/images/' }))
+    .pipe(htmlmin({ collapseWhitespace: true, removeComments: true }))
+    .pipe(gulp.dest('dist/'))
 })
 
 // sass
@@ -53,45 +71,30 @@ const processors = [
 ]
 
 gulp.task('sass', function() {
-  return gulp.src('src/sass/style.scss')
+  return gulp.src('src/sass/styles.scss')
     .pipe(plumber({ errorHandler: onError }))
     .pipe(maps.init())
     .pipe(sass())
     .pipe(postcss(processors))
     .pipe(maps.write('./maps', { addComment: false }))
-    .pipe(gulp.dest('dist'))
+    .pipe(gulp.dest('dist/'))
 })
 
 // js
 
-const read = {
-  entry: 'src/js/main.js',
-  sourceMap: true,
-  plugins: [
-    resolve({ jsnext: true, main: true }),
-    commonjs(),
-    babel({ exclude: 'node_modules/**' }),
-    uglify()
-  ]
-}
-
-const write = {
-  format: 'iife',
-  sourceMap: true
-}
-
-gulp.task('js', function() {
-  return rollup
-    .rollup(read)
-    .then(function(bundle) {
-      // generate the bundle
-      const files = bundle.generate(write)
-
-      // write the files to dist
-      fs.writeFileSync('dist/bundle.js', files.code)
-      fs.writeFileSync('dist/maps/bundle.js.map', files.map.toString())
-    })
+gulp.task('clean-js', function() {
+    return del(['dist/js/**'])
 })
+
+gulp.task('js', ['clean-js'], function() {
+    return gulp.src('src/js/**/*.js')
+        .pipe(maps.init())
+        .pipe(concat('demo.min.js'))
+        .pipe(uglify().on('error', util.log))
+        .pipe(maps.write())
+        .pipe(gulp.dest('dist/js'));
+})
+
 
 // images
 
@@ -103,7 +106,7 @@ gulp.task('images', function() {
     .pipe(gulp.dest('dist/images'))
 })
 
-// fonts, videos, favicon
+// fonts, videos, favicon, lib
 
 const others = [
   {
@@ -118,7 +121,11 @@ const others = [
     name: 'favicon',
     src:  '/favicon.ico',
     dest: ''
-  }
+  }, {
+    name: 'lib',
+    src: '/lib/**/*',
+    dest: '/lib'
+  } 
 ]
 
 others.forEach(function(object) {
@@ -145,21 +152,35 @@ const sendMaps = function(req, res, next) {
   return next()
 }
 
-const options = {
-  notify: false,
-  proxy: 'django:8080',
-  watchOptions: {
-    ignored: '*.map'
-  },
-  port: 8080
-}
+gulp.task('server', function() {
+    var target_url = 'http://django:8080'
 
-gulp.task('server', function() {sync(options)})
+    var proxyAdmin= proxy('/admin', {target: target_url, xfwd: true})
+    var proxyAPI=   proxy('/api',   {target: target_url, xfwd: true})
+
+    sync({
+        notify: false,
+        open: false,
+        port: 8080,
+        watchOptions: {
+            ignored: '*.map'
+        },
+        server: {
+            baseDir: 'dist',
+            index:   'index.html',
+            routes: {
+                '/static': 'dist' 
+            },
+            middleware: [proxyAdmin, proxyAPI, history()]
+        }
+    });
+})
 
 // watch
 
 gulp.task('watch', function() {
-  gulp.watch('src/html/**/*.html', ['html', reload])
+  gulp.watch('src/index.html',['index', reload])
+  gulp.watch('src/templates/**/*.html', ['html', reload])
   gulp.watch('src/sass/**/*.scss', ['sass', reload])
   gulp.watch('src/js/**/*.js', ['js', reload])
   gulp.watch('src/images/**/*.{gif,jpg,png,svg}', ['images', reload])
@@ -183,7 +204,7 @@ gulp.task('build', ['clean'], function() {
 
 
   // run the tasks
-  gulp.start('html', 'sass', 'js', 'images', 'fonts', 'videos', 'favicon')
+  gulp.start('html', 'sass', 'js', 'images', 'fonts', 'videos', 'favicon', 'lib', 'index')
 })
 
 gulp.task('default', ['build', 'server', 'watch'])

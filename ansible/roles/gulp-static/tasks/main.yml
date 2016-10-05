@@ -1,32 +1,93 @@
 ---
 - name: Install dumb init
-  get_url: dest=/usr/bin/dumb-init url=https://github.com/Yelp/dumb-init/releases/download/v1.0.2/dumb-init_1.0.2_amd64 mode=0775 validate_certs=no
+  get_url:
+    dest: /usr/bin/dumb-init
+    url: https://github.com/Yelp/dumb-init/releases/download/v1.0.2/dumb-init_1.0.2_amd64
+    mode: 0775
+    validate_certs: no
+
 - name: Make node user
-  user: name="{{ NODE_USER }}" state=present createhome=yes home="{{ NODE_HOME }}/"
-- name: Make sure node owns its working dir
-  file: name="{{ NODE_HOME }}/" state=directory owner="{{ NODE_USER }}" recurse=true
+  user:
+    name: "{{ NODE_USER }}"
+    state: present
+    createhome: yes
+    home: "{{ NODE_HOME }}/"
+
 - name: Make node_modules directory
-  file: name=/node_modules state=directory owner="{{ NODE_USER }}"
+  file:
+    name: /node_modules
+    state: directory
+    owner: "{{ NODE_USER }}"
+    group: root 
+    mode: 0775
+
+- name: Remove contents of dist directory
+  command: rm -rf dist/*
+  args:
+    chdir: "{{ NODE_HOME }}"
+
 - name: Install nodejs
-  yum: name="{{ NODE_RPM_URL }}"
+  yum:
+    name: "{{ item }}" 
+  with_items:
+    - "{{ NODE_RPM_URL }}"
+    - rsync
+    - git 
+
 - name: Copy source
-  copy: src="{{ lookup('pipe','dirname `pwd`') }}/" dest="{{ NODE_HOME }}/" owner="{{ NODE_USER }}"
+  synchronize:
+    src: /tmp/static/
+    dest: "{{ NODE_HOME }}/dist/"
   remote_user: "{{ NODE_USER }}"
+
 - name: Symlink package.json
-  file: name="{{ NODE_ROOT }}/package.json" src="{{ NODE_HOME }}/package.json" owner="{{ NODE_USER }}" state=link
+  file:
+    name: "{{ NODE_ROOT }}/package.json"
+    src: "{{ NODE_HOME }}/package.json"
+    owner: "{{ NODE_USER }}"
+    state: link
+
 - name: Install node deps
-  command: npm install chdir="{{ NODE_ROOT }}/"
+  command: npm install
+    chdir="{{ NODE_ROOT }}/"
   remote_user: "{{ NODE_USER }}"
+
+- name: Check if gulp is installed
+  stat:
+    path: /usr/bin/gulp
+  register: gulp
+
+- name: Install gulp
+  command: npm install -g gulp
+  when: not gulp.stat.exists
+
 - name: Build static assets
-  command: "{{ NODE_ROOT }}/node_modules/.bin/gulp build"
+  command: gulp build
   args:
     chdir: "{{ NODE_HOME }}/"
   environment:
     NODE_PATH: "{{ NODE_ROOT }}/"
   remote_user: "{{ NODE_USER }}"
-- name: Itemize built assets
-  find: paths="{{ NODE_HOME }}/dist" recurse=yes
-  register: gulp_assets
+
+- name: Check if bower is installed 
+  stat:
+    path: /usr/bin/bower
+  register: bower
+
+- name: Install bower
+  command: npm install -g bower
+  when: not bower.stat.exists
+
+- name: Install bower packages 
+  command: bower install
+  args:
+    chdir: "{{ NODE_HOME }}/"
+  remote_user: "{{ NODE_USER }}"
+
 - name: Fetch built assets
-  fetch: src="{{ item.path }}" dest=/tmp
-  with_items: gulp_assets.files
+  synchronize:
+    src: "{{ NODE_HOME }}/dist/"
+    dest: /tmp/static
+    mode: pull
+  remote_user: "{{ NODE_USER }}"
+

@@ -1,14 +1,16 @@
----
 - hosts: django
   roles:
-    - django-gunicorn
+  - django-gunicorn
+
 - hosts: gulp
   roles:
-    - gulp-static
+  - gulp-static
+
 - hosts: nginx
   roles:
-    - role: j00bar.nginx-container
-      ASSET_PATHS:
-        - /tmp/django/static/
-        - /tmp/gulp/node/dist/
-
+  - role: chouseknecht.nginx-container-1
+    ASSET_PATHS:
+    - /tmp/static
+    PROXY: yes
+    PROXY_PASS: http://django:8080
+    PROXY_LOCATION: "~* /(api|admin)"

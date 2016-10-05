@@ -4,6 +4,8 @@ DJANGO_RPM_DEPS:
   - python-devel
   - gcc
   - python-virtualenv
+  - nc
+  - rsync
 DJANGO_USER: django
 DJANGO_ROOT: /django
 DJANGO_VENV: /venv

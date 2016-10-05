@@ -1,39 +1,112 @@
 ---
 - name: Install dumb init
-  get_url: dest=/usr/bin/dumb-init url=https://github.com/Yelp/dumb-init/releases/download/v1.0.2/dumb-init_1.0.2_amd64 mode=0775 validate_certs=no
+  get_url:
+    dest: /usr/bin/dumb-init
+    url: https://github.com/Yelp/dumb-init/releases/download/v1.0.2/dumb-init_1.0.2_amd64
+    mode: 0775
+    validate_certs: no
+
+- name: Install epel
+  yum: 
+    name: epel-release
+    state: present 
+
 - name: Install python deps
-  yum: name="{{ item }}" state=latest update_cache=yes
-  with_items: DJANGO_RPM_DEPS
+  yum:
+    name: "{{ item }}"
+    state: latest
+    update_cache: yes
+  with_items: "{{ DJANGO_RPM_DEPS }}"
+
 - name: Make Django user
-  user: name="{{ DJANGO_USER }}" state=present createhome=yes home="{{ DJANGO_ROOT }}"
+  user:
+    name: "{{ DJANGO_USER }}"
+    uid: 1000
+    group: root
+    state: present
+    createhome: yes
+    home: "{{ DJANGO_ROOT }}"
+
 - name: Make virtualenv dir
-  file: name="{{ DJANGO_VENV }}" state=directory owner="{{ DJANGO_USER }}"
+  file:
+    name: "{{ DJANGO_VENV }}"
+    state: directory
+    owner: "{{ DJANGO_USER }}"
+    group: root
+    mode: 0775
+
 - name: Make staticfiles dir
-  file: name="{{ DJANGO_STATIC_ROOT }}" state=directory owner="{{ DJANGO_USER }}"
+  file:
+    name: "{{ DJANGO_STATIC_ROOT }}"
+    state: directory
+    owner: "{{ DJANGO_USER }}"
+    group: root
+    mode: 0775
+
 - name: Setup virtualenv
-  command: virtualenv . chdir="{{ DJANGO_VENV }}" creates="{{ DJANGO_VENV }}/bin/python"
+  command: virtualenv .
+  args:
+    chdir: "{{ DJANGO_VENV }}"
+    creates: "{{ DJANGO_VENV }}/bin/python"
   remote_user: "{{ DJANGO_USER }}"
+
 - name: Copy source
-  copy: src="{{ lookup('pipe','dirname `pwd`') }}/" dest="{{ DJANGO_ROOT }}" owner="{{ DJANGO_USER }}"
+  synchronize:
+    src: "{{ lookup('pipe','dirname `pwd`') }}/"
+    dest: "{{ DJANGO_ROOT }}"
   remote_user: "{{ DJANGO_USER }}"
+
+- name: Create dist dir
+  file:
+    path: "{{ DJANGO_ROOT }}/dist"
+    state: directory
+    owner: django
+    mode: 0775
+
 - name: Install requirements
-  pip: executable="{{ DJANGO_VENV }}/bin/pip" requirements="{{ DJANGO_ROOT }}/requirements.txt"
+  pip:
+    executable: "{{ DJANGO_VENV }}/bin/pip"
+    requirements: "{{ DJANGO_ROOT }}/requirements.txt"
   remote_user: "{{ DJANGO_USER }}"
+
 - name: Collect staticfiles
   command: "{{ DJANGO_VENV }}/bin/python manage.py collectstatic --noinput"
   args:
     chdir: "{{ DJANGO_ROOT }}"
   remote_user: "{{ DJANGO_USER }}"
-- name: Itemize Django static assets
-  find: paths="{{ DJANGO_STATIC_ROOT }}" recurse=yes
-  register: django_assets
+
 - name: Fetch Django static assets
-  fetch: src="{{ item.path }}" dest=/tmp
-  with_items: django_assets.files
-- name: Wait for the database to come up...
-  wait_for: host=postgresql port=5432 delay=10
-- name: Apply database migrations
-  command: "{{ DJANGO_VENV }}/bin/python manage.py migrate --noinput"
-  args:
-    chdir: "{{ DJANGO_ROOT }}"
+  synchronize:
+    src: "{{ DJANGO_STATIC_ROOT }}/"
+    dest: /tmp/static
+    mode: pull
   remote_user: "{{ DJANGO_USER }}"
+
+- name: Change /django permissions
+  file:
+    path: "{{ DJANGO_ROOT }}"
+    state: directory
+    owner: django
+    group: root
+    mode: 0775 
+
+- name: Create startup directory
+  file:
+    path: /startup
+    state: directory
+    owner: "{{ DJANGO_USER }}" 
+    group: root
+    mode: 0775
+
+- name: Copy entrypoint
+  copy:
+    src: "{{ role_path }}/files/{{ item }}" 
+    dest: "/usr/bin/{{ item }}"
+    owner: root
+    group: root
+    mode: 0775
+  with_items:
+    - entrypoint.sh
+    - wait_on_postgres.py
+    - manage_django.sh
+

@@ -21,10 +21,11 @@
     "gulp-sass":                  "*",
     "gulp-sourcemaps":            "*",
     "node-notifier":              "*",
-    "rollup":                     "*",
-    "rollup-plugin-babel":        "*",
-    "rollup-plugin-commonjs":     "*",
-    "rollup-plugin-node-resolve": "*",
-    "rollup-plugin-uglify":       "*"
+    "http-proxy-middleware":      "*",
+    "bower":                      "*",
+    "gulp-concat":                "*",
+    "gulp-uglify":                "^1.0.1",
+    "gulp-util":                  "*",
+    "connect-history-api-fallback": "^1.1.0"
   }
 }
