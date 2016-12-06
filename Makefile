@@ -4,7 +4,7 @@ project_name = $(shell basename $$PWD)
 
 clean:
 	@./ansible/clean.sh all
-	docker volume rm ansible_postgres-data
+	-docker volume rm ansible_postgres-data
 
 build:
 	@./ansible/clean.sh containers 
