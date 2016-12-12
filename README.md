@@ -1,282 +1,284 @@
 # django-gulp-nginx
 
-[![Build Status](https://travis-ci.org/chouseknecht/django-gulp-nginx.svg?branch=master)](https://travis-ci.org/chouseknecht/django-gulp-nginx)
+A framework for building containerized [django](https://www.djangoproject.com/) applications. Run containers on your laptop while you develop, run a test build, and when you're ready, deploy to the cloud. Utilizes [Ansible Container](https://github.com/ansible/ansible-container) to manage each phase of the application lifecycle.
 
-A web application built and managed with [Ansible Container](https://github.com/ansible/ansible-container).
+- [Requirements](#requirements)
+- [Getting Started](#getting-started)
+- [Developing](#developing)
+- [Testing](#testing)
+- [Deploying](#openshift)
+- [Contributing](#contributing)
+- [License](#license)
+- [Dependencies](#dependencies)
+- [Author](#author)
 
-The application includes a Django rest API on the backend, and an AngularJS single page application (SPA) on the frontend. Together they combine to create a simple social media app called *Not Goolge Plus*, where you can register, update your profile, and share your thoughts with the world. 
+<h2 id="requirements">Requirements</h2>
 
-To view the demo start by setting up your development environment. Later, after you've made some changes, test the application in production mode, and finally deploy your changes to the cloud using a local OpenShift instance.
+- Ansible Container, running from source. See the [Running from source guide](http://docs.ansible.com/ansible-container/installation.html#running-from-source), for assistance. 
+- [Docker Engine](https://www.docker.com/products/docker-engine) or [Docker for Mac](https://docs.docker.com/engine/installation/mac/)
+- make
+- git
 
-The application may sound simplistic, but it incorporates the architecture and tools typical of a modern web app, allowing you to see first hand how Ansible Container makes it easy to manage a containerized app through each phase of the development lifecycle.
+<h2 id="getting-started">Getting Started</h2>
 
-## Requirements
-
-Before you can run the demo, you'll need a couple of things:
-
- - Ansible Container installed from source. See our [Running from source guide](http://docs.ansible.com/ansible-container/installation.html#running-from-source) for assistance.  
- - Docker Engine or Docker for Mac.
- - Ansible 2.1+, if you plan to run through the deployment  
-
-## Getting Started
-
-You'll start by copying the project, building the images, and launching the app in development mode. When you're done you'll be able to tour the *Not Google Plus* site running live in your environment. 
-
-### Copy the project
-
-To get started, use the Ansible Container `init` command to create a local copy of this project. In a terminal window, run the 
-following commands to create the copy: 
+To start developing, it's as easy as...
 
 ```
-# Create a directory called 'demo'
-$ mkdir demo
+# Clone this project into a local directory.
+$ git clone https://github.com/chouseknecht/django-gulp-nginx.git demo
 
-# Set the working directory to demo
-$ cd demo
+# Set the working directory to the project root
+$ cd demo 
 
-# Initialize the project 
-$ ansible-container init chouseknecht.django-gulp-nginx 
+# Create the container images
+$ ansible-container build
 ```
 
-You now have a copy of the project in a directory called *demo*. Inside *demo/ansible* you'll find a `container.yml` file 
-describing in [Compose](http://docs.ansible.com/ansible-container/container_yml/reference.html) the services that make up the application, and an Ansible playbook called `main.yml` containing a set of plays for building the application images. 
+The build process takes a few minutes, the first time, and as it runs, build tasks will appear on your terminal session as the Ansible playbook executes. Once completetd, you'll have a local set of images for your project.
+
+Next, start the containers: 
+
+```
+# Start the containers
+$ ansible-container run
+```
+
+You now have have 3 containers running in development mode, ready for you to begin building your app. The containers are: gulp, django and postgresql.
+
+To browse the framework, open a browser and go to [http://localhost:8080](http://localhost:8080). Since no development has done, the landing page is blank. You can access the login to the django admin site by going to [http://localhost:8080/admin](http://localhost:8080/admin)
+
+<h2 id="developing">Developing</h2>
+ 
+When you start the containers by running `ansible-container run`, they start in development mode, which means that the *dev_overrides* section of each service definition in *container.yml* takes precedence, causing the gulp, django and postgresql containers to run, and the nginx to stop.  
+
+The frontend code can be found in the *src* directory, and the backend django code is found in the *project* directory. You can begin macking changes right away, and you will see the results reflected in your browser almost immediately.
+
+Here's a breif overview of each of the running services:
+
+### gulp 
+
+While developing, the gulp container will be running, and actively watching for changes to files in the *src* directory tree. The *src* directory is where custom frontend components (i.e. html, javascript, css, etc.) live, and as new files are created or existing files modified, the gulp service will compile the updates, place results in the *dist* directory, and trigger a refresh in your browser.
+
+In addition to compiling the frontend components, the gulp server will proxy requests beginning with */static* or */admin* to the backend service, django. The proxy settings are configurable in *gulpfile.js*, so as you add additional routes the django service, you can expand the request paths forward by the gulp service. 
+
+As you add new routes to the backend, be sure to update the nginx configuration by modifying ansible/main.yml, and adjusting the parameters passed to the chouseknecht.nginx-container-1 role. Specifically, you'll need to update the PROXY_LOCATION value.
+
+### django
+
+The django service provides the backend to the application. During development the *runserver* process executes, and accepts requests from the gulp service. The source code to the django app lives in the *project* directory tree. To add additional python and django modules,add the module names and versions to *requirements.txt*, and run the `ansible-container build` command to add them to the django image.
+
+When the django container starts, it waits for the postgresql database to be ready, and then it performs migrations, before starting the server process. Use `make django_command makemigrations` and `make django_command migrations` to create and run migrations during develoopment.  
+
+### postgresql
+
+The posgresql sevice provides the django service with access to a database, and by default stores the database on the *postgres-data* volume. 
+
+<h2 id="testing">Testing</h2>
+
+After you've made changes to the app, and you're ready to test, you'll first run `ansible-container build` to add your changes to the project images, and then you'll run the containers using `ansible-container run --production`. This will start the containers in production mode, ignoring the *dev_overrides * section of each service definition, and running the containers as if they were deployed to prodction. 
+In production mode the django, nginx, and postgresql containers will run, and the gulp container will stop.  
+
+### django
+
+The django service provides the backend for the application, but now it's running the gunicorn process to accept requests from the nginx service. Just as before, when the service starts it will wait for the postgresql database to become available, and then perform migrations, before starting the server process. 
+
+### nginx 
+
+The nginx service serves the frontend components, and proxies requests to the django service. If you added new routes to your django application, before running `ansible-container build`, be sure to update the nginx configuration by modifying ansible/main.yml, and adjusting the parameters passed to the chouseknecht.nginx-container-1 role. Specifically, you'll need to update the PROXY_LOCATION value.
+
+### postgresql
+
+The posgresql sevice provides the django service with access to a database, and by default stores the database on the *postgres-data* volume.
+
+<h2 id="openshift">Deploying</h2>
+
+For this example we'll run a local OpenShift instance. You'll need the following to create the instance: 
+
+- Download the [oc client](https://github.com/openshift/origin/releases/tag/v1.3.0), and add the binary to your PATH.
+
+- If you're running Docker Engine, configure the daemon with an insecure registry parameter of 172.30.0.0/16  
+
+    - In RHEL and Fedora, edit the /etc/sysconfig/docker file and add or uncomment the following line
+
+        ```
+        INSECURE_REGISTRY='--insecure-registry 172.30.0.0/16'
+        ```
+    - After editing the config, restart the Docker daemon. 
+
+        ```
+        $ sudo systemctl restart docker
+        ```
+- If you're using Docker Machine, you'll need to create a new instance. The following creates a new instance named *devel*
+
+    ```
+    docker-machine create -d virtualbox --engine-insecure-registry 172.30.0.0/16 --virtualbox-host-dns-resolver devel
+    ```
+
+Launch the instance:
+
+```
+$ oc cluster up
+```
+
+After the command completes, access instructions will be displayed that include the console URL along with a user account and an admin account details. For example:
+
+```
+-- Server Information ...
+   OpenShift server started.
+   The server is accessible via web console at:
+       https://192.168.99.106:8443
+
+   You are logged in as:
+       User:     developer
+       Password: developer
+
+   To login as administrator:
+       oc login -u system:admin
+```
+
+Login using the administrator account, and create a project that matches the name of your project. For example, the following creates a *symfony-mariadb-nginx* project:
+
+```
+# Login as the admin user
+$ oc login https://<your Docker Host IP>:8443 -u system:admin
+
+# Create a project with a name matching the name of our project directory
+$ oc new-project symfony-mariadb-nginx
+```
 
 ### Build the images
 
-To run the application, you'll first need to build the images, and you can start the build by running the following command:
+We neeed to buid a set of images for our project with the latest code deployed inside the *nginx* image. Each time you make code changes and want to deploy, you will need to run a build in order to upate the nginx image. Run the following to build the images:
 
 ```
-# Start the image build process
-$ ansible-container build
+# Set the working directory to the root of the project
+$ cd symfony-mariadb-nginx
+
+# Build the images
+$ make build
 ```
 
-![Building the images](https://github.com/chouseknecht/django-gulp-nginx/blob/images/images/build_01.png)
+### Push the images to the registry
 
-The build process launches a container for each service along with a build container. For each service container, the base image is the 
-image specified in `container.yml`. The build container runs the `main.yml` playbook, and executes tasks on each of the containers. You'll 
-see output from the playbook run in your terminal window as it progresses through the tasks. When the playbook completes, each image will
-be `committed`, creating a new set of base images.
+For example purposes we'll push the images to Docker Hub. If you have a private registry, you could use that as well. See [registry overview](https://docs.openshift.org/latest/install_config/registry/index.html) for instructions on using registries with OpenShit. 
 
-When execution stops, use the `docker images` command to view the new images:
+To push the images we'll use the `ansible-container push` command. If you previously logged into Docker Hub using `docker login`, then you should not need to authenticate again. If you need to authentication, you can use the *--username* and *--password* options. For more details and available options see [the *push* reference](http://docs.ansible.com/ansible-container/reference/push.html).
 
-```
-# View the images
-$ docker images
-
-REPOSITORY                          TAG                 IMAGE ID            CREATED             SIZE
-demo-django                         20161205170642      dbe68f4e3c74        About an hour ago   1.28 GB
-demo-django                         latest              dbe68f4e3c74        About an hour ago   1.28 GB
-demo-nginx                          20161205170642      5becc50f69a9        About an hour ago   270 MB
-demo-nginx                          latest              5becc50f69a9        About an hour ago   270 MB
-demo-gulp                           20161205170642      0644893c80d7        About an hour ago   508 MB
-demo-gulp                           latest              0644893c80d7        About an hour ago   508 MB
-```
-
-### Run the application
-
-Now that you have the application images built in your environent, you can launch the application and log into *Not Google Plus*. Run the following command to start the application:
+The following will perform the push:
 
 ```
-# Launch the demo
-$ ansible-container run
-```
-You should now see the output from each container streaming in your terminal window. The containers are running in the foreground, and they are running in *development mode*, which means that for each service the *dev_overrides* directive is being included in the configuration. For example, take a look at the *gulp* service definition found in `container.yml`:
+# Set the working directory to the project root
+$ cd symfony-mariadb-nginx
 
-```
-  gulp:
-    image: centos:7
-    user: '{{ NODE_USER }}'
-    working_dir: '{{ NODE_HOME }}'
-    command: ['/bin/false']
-    environment:
-      NODE_HOME: '{{ NODE_HOME }}'
-    volumes:
-      - "${PWD}:{{ NODE_HOME }}"
-    dev_overrides:
-      command: [/usr/bin/dumb-init, /usr/bin/gulp]
-      ports:
-      - 8080:{{ GULP_DEV_PORT }}
-      - 3001:3001
-      links:
-      - django
-    options:
-      kube:
-        state: absent
-      openshift:
-        state: absent
+# Push the images 
+$ ansible-container push 
 ```
 
-In development *dev_overrides* takes precedence, so the command ``/usr/bin/dumb-init /usr/bin/gulp* will be executed, ports 8080 and 3001 will be exposed, and the container will be linked to the *django* service container.
+### Generate the deployment playbook and role
 
-If you were to tun the *gulp* service in production, *dev_overrides* would be ignored completely. In production the ``/bin/false`` command will be executed, causing the container to immediately stop. No ports would be exposed, and the container would not be linked to the django container.
+Now we're ready to transform our orchestration document [ansible/container.yml](https://github.com/chouseknecht/symfony-mariadb-nginx/tree/master/ansible/container.yml) into deployment instrutions for OpenShift by running the `ansible-container shipit` command to generate an Ansible playbook and role.
 
-Since the frontend tools gulp and browsersync are only needed during development and not during production, we use *dev_overrides* to manage when the container executes.
+For our example the images are out on Docker Hub. If you're using a private registry, you'll need to use the *--pull-from* option to specify the registry URL. For `shipit` details and available options see [the shipit reference](http://docs.ansible.com/ansible-container/reference/shipit.html).
 
-The same is true for the nginx service. Take a look at the service definition in `container.yml`, and you'll notice it's configured opposite of the gulp service:
-
-```
-  nginx:
-    image: centos:7
-    ports:
-    - {{ DJANGO_PORT }}:8000
-    user: nginx
-    links:
-    - django
-    command: ['/usr/bin/dumb-init', 'nginx', '-c', '/etc/nginx/nginx.conf']
-    dev_overrides:
-      ports: []
-      command: /bin/false
-    options:
-      kube:
-        runAsUser: 1000
-```
-
-In development the nginx service runs the ``/bin/false`` command, and immediately exits. But in production it starts the 
-``nginx`` process, and takes the place of the gulp service as the application's web server.
-
-### Tour the site 
-
-Now that you have the application running, lets check it out! Watch the video below, and follow along on your local site to register, log in, and create posts. Your site will be reachable at [http://localhost:8080](http://localhost:8080), and you can browse the API directly at [http://localhost:8080/api/v1/](http://localhost:8080/api/v1/).
-
-Click the image below to watch the video:
-
-[![Site Tour](https://github.com/chouseknecht/django-gulp-nginx/blob/images/images/demo.png)](https://youtu.be/XVOIVhcYd8M)
-
-### Stopping the containers
-
-Once you're finished, you can press `ctrl-c` to kill the containers. This will signal Docker to kill the processes running inside the containers, and shut the containers down. This works when the containers are running in the foreground, streaming output to your terminal window.
-
-You can also run `ansible-container stop`. For containers running in the foreground, open a second terminal window, set the working directory to your *demo* project, and run the command. It will terminate all containers associated with the project, regardless wether they're running in the foreground or in the backgound.
-
-## Testing the application
-
-If you make code changes, and you want to test, you'll begin by building a fresh set of images that contain your code changes. During the build process the latest code gets added to the nginx image. So if you actually modified some code, go ahead and run the `build` command as follows, otherwise you can skip this step:
+The following will build the playbook and role:
 
 ```
-# Start the build process
-$ ansible-container build
-```  
+# Set the working directory to the project root
+$ cd symfony-mariadb-nginx
 
-Once the build process completes, you'll have a new set of images, which you can view using `docker images`
-
-```
-# View the images once again
-$ docker images
-
-REPOSITORY                          TAG                 IMAGE ID            CREATED             SIZE
-demo-django                         20161205192107      103a28329385        4 minutes ago       2.31 GB
-demo-django                         latest              103a28329385        4 minutes ago       2.31 GB
-demo-gulp                           20161205192107      b264122208b5        5 minutes ago       534 MB
-demo-gulp                           latest              b264122208b5        5 minutes ago       534 MB
-demo-nginx                          20161205192107      7206eff9bf9b        5 minutes ago       295 MB
-demo-nginx                          latest              7206eff9bf9b        5 minutes ago       295 MB
-demo-django                         20161205170642      dbe68f4e3c74        2 hours ago         1.28 GB
-demo-nginx                          20161205170642      5becc50f69a9        2 hours ago         270 MB
-demo-gulp                           20161205170642      0644893c80d7        2 hours ago         508 MB
+# Run the shipit command, using the IP address for your registry
+$ ansible-container shipit openshift
 ```
 
-You now have a newer set of images with your code changes baked into the nginx image. Now when you start the application in production mode or deploy it, your changes will be available.
+### Run the deployment
 
-### Start in production mode 
+The above added a playbook called *shipit-openshift.yml* to the *ansible* directory. The playbook relies on the `oc` client being installed and available in the PATH, and it assumes you already authenticated, and created the project.
 
-For testing you want to launch the application in *production mode*, so that it runs exactly the same as it does when deployed to the cloud. As we pointed out earlier, when run in production the *dev_overrides* settings are ignored, which means we'll see the gulp container stop and the nginx container start and run as our web server. To start the application in production mode, run the following command:
-
-```
-# Start the appliction in production mode
-$ ansible-container run --production
-```
-
-The following video shows the application starting with the ``--production`` option. Click the image below to watch the video:
-
-[![Testing](https://github.com/chouseknecht/django-gulp-nginx/blob/images/images/production.png)](https://youtu.be/ATpYJhG1RV0)
-
-## Deploy the application
-
-Once the application passes testing, it's time to deploy it to production. To demonstrate, we'll create a local instance of OpenShift, push images to its registry, generate a deployment playbook, run it, and check the results.
-
-### Create a local OpenShift instance
-
-To create an OpenShift instance you'll install the ``oc`` command line tool, and then run `oc cluster up`. The cluster runs in containers, making the install process almost trivial.
-
-You'll find instructions in our [Install and Configure OpenShift guide](http://docs.ansible.com/ansible-container/configure_openshift.html) to help you create an instance. One available installation method is the Ansible role [chouseknecht.cluster-up-role](https://galaxy.ansible.com/chouseknecht/cluster-up-role), which is demonstrated in the following video:
-
-[![Creating an OpenShift instance](https://github.com/chouseknecht/django-gulp-nginx/blob/images/images/cluster.png)](https://youtu.be/iY4bkHDaxCc)
-
-To use the role, you'll need Ansible installed. Also, note in the video that the playbook is copied from the installed role's file structure. You'll find the playbook, *cluster-up.yml*, in the *files* subfolder.
-
-As noted in the role's [README](https://github.com/chouseknecht/cluster-up-role/blob/master/README.md), if you have not already added the *insecure-registry* option to Docker, the role will error, and provide the subnet or IP range that needs to be added. You'll also need to add the value of the *openshift_hostname* option, which by default is *local.openshift*. For more about adding the --insecure-registry option see [Docker's documentation](https://docs.docker.com/registry/insecure/). 
-
-### Create an OpenShift project
-
-Now that you have an OpenShift instance, run the following to make sure you're logged into the cluster as *developer*, and create a *demo* project:
+When you're ready to deploy, run the following:
 
 ```
-# Verify that we're logged in as the *developer* user
-$ oc whoami
-developer
+# Set the working directory to the ansible directory
+$ cd symfony-mariadb-nginx/ansible
 
-# Create a demo project
-$ oc new-project demo
-
-Now using project "demo" on server "https://...:8443".
-
-You can add applications to this project with the 'new-app' command. For example, try:
-
-    oc new-app centos/ruby-22-centos7~https://github.com/openshift/ruby-ex.git
-
-to build a new example application in Ruby.
-```
-
-### Push the images
-
-Before starting the application on the cluster, the images will need to be accessible, so you'll push them to the *demo* repository on the local registry.
-
-If you ran the role to create the OpenShift instance or worked through our guide, then a new hostname, *local.openshift*, was created for accessing the registry, and the *developer* account now has full admin access. So you'll employ both of these as you execute the following commands to push the images:   
-
-```
-# Set the working directory to the demo project
-$ cd demo
-
-# Push the demo images to the local registry 
-$ ansible-container push --push-to https://local.openshift/demo --username developer --password $(oc whoami -t)
-```
-
-The following video shows the project's images being pushed to the local registry:
-
-[![Push images](https://github.com/chouseknecht/django-gulp-nginx/blob/images/images/push.png)](https://youtu.be/KklXsFKd8gQ)
-
-### Generate the deployment artifacts 
-
-Now you'll generate a playbook and role that are capable of deploying the application. From the *demo* directory, execute the `shipit` command as pictured below, passing the `--pull-from` option with the URL to the local registry:
-
-```
-# Generate the deployment playbook and role
-$ ansible-container shipit openshift --pull-from https://local.openshift/demo
-```
-Running the above creates, a playbook, *shipit-openshift.yml*, in the *ansible* directory, and a role, *demo-openshift*, in the *ansible/roles* directory as demonstrated in the following video:
-
-[![Run shipit](https://github.com/chouseknecht/django-gulp-nginx/blob/images/images/shipit.png)](https://youtu.be/4a8WKO5Kjlo)
-
-### Deploy!
-
-You now have the deployment playbook and role. But before you run the playbook, you'll need to create an inventory file. If you're not familiar with Ansible, not to worry. A playbook runs a set of plays on a list of hosts, and the inventory file holds the list of hosts. In this case we want to execute the plays on our local workstation, which we can refer to as *localhost*, and so we'll create an inventory file containing a single host named *localhost*. Run the following to create the inventory file:
-
-```
-# Set the working directory to demo/ansible
-$ cd ansible
-
-# Create an inventory file
-$ echo "localhost">inventory
-```
-Now from inside the *demo/ansible* directory, run the following to launch the *Not Google Plus* site on your OpenShift instance:
-
-```
 # Run the playbook
-$ ansible-playbook -i inventory shipit-openshift.yml
+$ ansible-playbook shipit-openshift.yml
 ```
-Once the playbook completes, the application will be running on the cluster, and you can log into the console to take a look. To access the application, you'll need the hostname assigned to the route, and you can discover that by clicking on *Applications*, and choosing *Routes*. From there click on the hostname link, and the application will be opened in a new browser tab.
 
-Watch the following video to see the full deployment:  
+### Access the application
 
-[![Deploy the app](https://github.com/chouseknecht/django-gulp-nginx/blob/images/images/deploy.png)](https://youtu.be/9i6iGMLyr44)
+Start by logging into the OpenShift console using the URL displayed when you ran `oc cluster up`. Log in using the administrator account, and select the *symfony-mariadb-nginx* project. When the dashboard comes up, you'll see two running pods:
+
+<img src="https://github.com/chouseknecht/symfony-mariadb-nginx/blob/images/img/dashboard.png" alt="dashboard view" />
+
+
+To access the application in a browser, click on the *Application* menu, and choose *Routes*. You'll see a route exposing the *nginx* service. Click on the *Hostname* to open it in a browser.
+
+### Load the database
+
+If you're running the demo app, you can load the sample data similar to what you did previously, except this time we'll use the `oc` command. Start by getting the name of the *nginx* pod:
+
+```
+# List all pods in the project
+$ oc get pods
+
+NAME              READY     STATUS    RESTARTS   AGE
+mariadb-3-3xxsf   1/1       Running   0          1h
+nginx-3-gi4tj     1/1       Running   0          1h
+```
+
+Access the nginx pod, by running the `oc rsh` command followed by the name of your *nginx* pod. For example:
+
+```
+# Open a session to the pod
+$ oc rsh nginx-3-gi4tj 
+```
+
+Now inside the *nginx* pod, run the following:
+
+```
+# Set the working directory to the web directory
+$ cd /var/www/nginx
+
+# Create the database schema
+$ php bin/console doctrine:schema:create
+
+# Load the data
+$ php bin/console doctrine:fixtures:load --no-interaction
+
+# Exit the container
+$ exit
+```
+
+<h2 id="next">What's next?</h2>
+
+If you followed through all of the examples, we covered a lot of ground. Under the covers we're using Ansible Container to build and manage the containers, so you'll want to use the following resources to learn more:
+
+- [Project repo](https://github.com/ansible/ansible-container)
+- [Docs Site](https://docs.ansible.com/ansible-container)
+
+### Project configuration 
+
+When we create the new project or the demo project, we're relying on the entrypoint script, symfony config and other files that get added into the *symfony* image during the `build` process. This gets handled in the [configure-symfony role](https://github.com/chouseknecht/symfony-mariadb-nginx/tree/master/ansible/roles/configure-symfony)
+
+### Nginx, php-fpm and supervisor
+
+The nginx service is configured by the [configure-php-fpm role](https://github.com/chouseknecht/symfony-mariadb-nginx/tree/master/ansible/roles/configure-php-fpm) as well as the [supervisord role](https://github.com/chouseknecht/symfony-mariadb-nginx/tree/master/ansible/roles/supervisord) during the build process. You'll want to take a look at these roles to understand how the container is configured. 
+
+<h2 id="contributing">Contributing</h2>
+
+If you work with this project and find issues, please [submit an issue](https://github.com/chouseknecht/symfony-mariadb-nginx/issues). 
+
+Pull requests are welcome. If you want to help add features and maintain the project, please feel free to jump in, and we'll review your request quickly, and help you get it merged.
+
+<h2 id="license">License</h2>
+
+[Apache v2](https://www.apache.org/licenses/LICENSE-2.0)
+
+<h2 id="dependencies">Dependencies</h2>
+
+- [chouseknecht.nginx-conainer](https://galaxy.ansible.com/chouseknecht/nginx-container)
+
+<h2 id="author">Author</h2>
+
+[chouseknecht](https://github.com/chouseknecht)
 
