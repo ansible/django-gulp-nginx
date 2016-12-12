@@ -1,6 +1,6 @@
 # django-gulp-nginx
 
-A framework for building containerized [django](https://www.djangoproject.com/) applications. Run containers on your laptop while you develop, run a test build, and when you're ready, deploy to the cloud. Utilizes [Ansible Container](https://github.com/ansible/ansible-container) to manage each phase of the application lifecycle.
+A framework for building containerized [django](https://www.djangoproject.com/) applications. Utilizes [Ansible Container](https://github.com/ansible/ansible-container) to manage each phase of the application lifecycle, and enables you to begin developing immediately in containers. 
 
 - [Requirements](#requirements)
 - [Getting Started](#getting-started)
@@ -43,13 +43,11 @@ Next, start the containers:
 $ ansible-container run
 ```
 
-You now have have 3 containers running in development mode, ready for you to begin building your app. The containers are: gulp, django and postgresql.
-
-To browse the framework, open a browser and go to [http://localhost:8080](http://localhost:8080). Since no development has done, the landing page is blank. You can access the login to the django admin site by going to [http://localhost:8080/admin](http://localhost:8080/admin)
+You now have have 3 containers running in development mode, ready for you to begin building your app. To view your app, open a browser and go to [http://localhost:8080](http://localhost:8080), and to log into the django admin site by go to [http://localhost:8080/admin](http://localhost:8080/admin)
 
 <h2 id="developing">Developing</h2>
  
-When you start the containers by running `ansible-container run`, they start in development mode, which means that the *dev_overrides* section of each service definition in *container.yml* takes precedence, causing the gulp, django and postgresql containers to run, and the nginx to stop.  
+When you start the containers by running `ansible-container run`, they start in development mode, which means that the *dev_overrides* section of each service definition in [container.yml](./ansible/container.yml) takes precedence, causing the gulp, django and postgresql containers to run, and the nginx to stop.  
 
 The frontend code can be found in the *src* directory, and the backend django code is found in the *project* directory. You can begin macking changes right away, and you will see the results reflected in your browser almost immediately.
 
