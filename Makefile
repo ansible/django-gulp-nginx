@@ -1,13 +1,14 @@
 project_name = $(shell basename $$PWD) 
 
-.PHONY: build build_from_scratch build_debug clean run run_detached run_prod stop django_manage django_exec gulp_build
+.PHONY: build build_from_scratch build_debug clean local_bulder
+	run run_detached run_prod stop django_manage django_exec gulp_build
 
 clean:
-	@./ansible/clean.sh all
+	@./scripts/clean.sh all
 	-docker volume rm ansible_postgres-data
 
 build:
-	@./ansible/clean.sh containers 
+	@./scripts/clean.sh containers 
 	-docker volume rm ansible_postgres-data
 	ansible-container build
 
@@ -15,9 +16,14 @@ build_from_scratch: clean
 	ansible-container build	
 
 build_debug:
-	@./ansible/clean.sh containers 
+	@./scripts/clean.sh containers 
 	-docker volume rm ansible_postgres-data
 	ansible-container --debug build
+
+local_builder:
+	@./scripts/clean.sh containers 
+	-docker volume rm ansible_postgres-data
+	ansible-container build --local-builder
 
 run:
 	ansible-container run

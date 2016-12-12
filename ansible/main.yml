@@ -1,16 +1,19 @@
 - hosts: django
+  gather_facts: no
   roles:
   - django-gunicorn
 
 - hosts: gulp
+  gather_facts: no
   roles:
   - gulp-static
 
 - hosts: nginx
+  gather_facts: no
   roles:
   - role: chouseknecht.nginx-container-1
     ASSET_PATHS:
-    - /tmp/static
+    - /tmp/dist
     PROXY: yes
     PROXY_PASS: http://django:8080
-    PROXY_LOCATION: "~* /(api|admin)"
+    PROXY_LOCATION: "~* /(admin|static)"

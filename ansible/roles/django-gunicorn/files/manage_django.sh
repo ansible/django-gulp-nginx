@@ -1,4 +1,6 @@
 #!/bin/bash
 
-cd /django
+# Run django management command
+
+cd ${DJANGO_ROOT}
 ${DJANGO_VENV}/bin/python ./manage.py "$@"

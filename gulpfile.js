@@ -34,33 +34,17 @@ const onError = function(error) {
 // clean
 
 gulp.task('clean', function() {
-   return del([
-     'dist/fonts/**',
-     'dist/images/**',
-     'dist/js/**',
-     'dist/lib/**',
-     'dist/templates/**',
-     'dist/videos/**',
-     'dist/favicon.ico'     
-   ])
+   return del('dist/**')
 })
 
 // html
 
 gulp.task('html', ['images'], function() {
-  return gulp.src('src/templates/**/*.html')
+  return gulp.src('src/html/**/*.html')
     .pipe(plumber({ errorHandler: onError }))
     .pipe(include({ prefix: '@', basepath: 'dist/images/' }))
     .pipe(htmlmin({ collapseWhitespace: true, removeComments: true }))
-    .pipe(gulp.dest('dist/templates'))
-})
-
-gulp.task('index', function() {
-  return gulp.src('src/index.html')
-    .pipe(plumber({ errorHandler: onError }))
-    .pipe(include({ prefix: '@', basepath: 'dist/images/' }))
-    .pipe(htmlmin({ collapseWhitespace: true, removeComments: true }))
-    .pipe(gulp.dest('dist/'))
+    .pipe(gulp.dest('dist'))
 })
 
 // sass
@@ -153,10 +137,11 @@ const sendMaps = function(req, res, next) {
 }
 
 gulp.task('server', function() {
-    var target_url = 'http://django:8080'
-
-    var proxyAdmin= proxy('/admin', {target: target_url, xfwd: true})
-    var proxyAPI=   proxy('/api',   {target: target_url, xfwd: true})
+    
+    // django endpoints
+    var django = 'http://django:8080'
+    var proxyAdmin=  proxy('/admin',  {target: django, xfwd: true})
+    var proxyStatic= proxy('/static', {target: django, xfwd: true})
 
     sync({
         notify: false,
@@ -168,10 +153,7 @@ gulp.task('server', function() {
         server: {
             baseDir: 'dist',
             index:   'index.html',
-            routes: {
-                '/static': 'dist' 
-            },
-            middleware: [proxyAdmin, proxyAPI, history()]
+            middleware: [proxyAdmin, proxyStatic, history()]
         }
     });
 })
@@ -179,8 +161,7 @@ gulp.task('server', function() {
 // watch
 
 gulp.task('watch', function() {
-  gulp.watch('src/index.html',['index', reload])
-  gulp.watch('src/templates/**/*.html', ['html', reload])
+  gulp.watch('src/html/**/*.html', ['html', reload])
   gulp.watch('src/sass/**/*.scss', ['sass', reload])
   gulp.watch('src/js/**/*.js', ['js', reload])
   gulp.watch('src/images/**/*.{gif,jpg,png,svg}', ['images', reload])
@@ -204,7 +185,7 @@ gulp.task('build', ['clean'], function() {
 
 
   // run the tasks
-  gulp.start('html', 'sass', 'js', 'images', 'fonts', 'videos', 'favicon', 'lib', 'index')
+  gulp.start('html', 'sass', 'js', 'images', 'fonts', 'videos', 'favicon', 'lib')
 })
 
 gulp.task('default', ['build', 'server', 'watch'])

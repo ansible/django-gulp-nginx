@@ -21,10 +21,16 @@
     group: root 
     mode: 0775
 
-- name: Remove contents of dist directory
-  command: rm -rf dist/*
-  args:
-    chdir: "{{ NODE_HOME }}"
+- name: Remove /dist 
+  file:
+    path: "{{ NODE_HOME }}/dist"
+    state: absent
+
+- name: Create /dist  
+  file:
+    path: "{{ NODE_HOME }}/dist"
+    state: directory 
+    mode: 0775
 
 - name: Install nodejs
   yum:
@@ -33,12 +39,6 @@
     - "{{ NODE_RPM_URL }}"
     - rsync
     - git 
-
-- name: Copy source
-  synchronize:
-    src: /tmp/static/
-    dest: "{{ NODE_HOME }}/dist/"
-  remote_user: "{{ NODE_USER }}"
 
 - name: Symlink package.json
   file:
@@ -86,8 +86,9 @@
 
 - name: Fetch built assets
   synchronize:
-    src: "{{ NODE_HOME }}/dist/"
-    dest: /tmp/static
+    src: "{{ NODE_HOME }}/dist"
+    dest: /tmp
+    rsync_opts: --blocking-io
     mode: pull
   remote_user: "{{ NODE_USER }}"
 
