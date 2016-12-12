@@ -52,13 +52,13 @@ You now have have 3 containers running in development mode, ready for you to beg
  
 When you start the containers by running `ansible-container run`, they start in development mode, which means that the *dev_overrides* section of each service definition in [ansbile/container.yml](./ansible/container.yml) takes precedence, causing the gulp, django and postgresql services to start, and the nginx service to stop.  
 
-The frontend code can be found in the *src* directory, and the backend django code is found in the *project* directory. You can begin macking changes right away, and as you do you'll see the results reflected in your browser almost immediately.
+The frontend code can be found in the [src](./src) directory, and the backend django code is found in the [project](./project) directory. You can begin macking changes right away, and as you do you'll see the results reflected in your browser almost immediately.
 
 Here's a brief overview of each of the running services:
 
 ### gulp 
 
-While developing, the gulp container will be running, and actively watching for changes to files in the *src* directory tree. The *src* directory is where custom frontend components (i.e. html, javascript, css, etc.) live, and as new files are created or existing files modified, the gulp service will compile the updates, place results in the *dist* directory, and using [browsersync](https://browsersync.io/), refresh your browser.
+While developing, the gulp container will be running, and actively watching for changes to files in the [src](./src) directory tree, where custom frontend components (i.e. html, javascript, css, etc.) live. As new files are created or existing files modified, the gulp service will compile the updates, place results in the [dist](./dist) directory, and using [browsersync](https://browsersync.io/), refresh your browser.
 
 In addition to compiling the frontend components, the gulp service will proxy requests beginning with */static* or */admin* to the django service. The proxy settings are configurable in *gulpfile.js*, so as you add additional routes to the django service, you can expand the number of paths forwarded by the gulp service. 
 
@@ -67,7 +67,7 @@ NOTE
 
 ### django
 
-The django service provides the backend of the application. During development the *runserver* process executes, and accepts requests from the gulp service. The source code to the django app lives in the *project* directory tree. To add additional python and django modules,add the module names and versions to *requirements.txt*, and run the `ansible-container build` command to add them to the django image.
+The django service provides the backend of the application. During development the *runserver* process executes, and accepts requests from the gulp service. The source code to the django app lives in the [project](./project) directory tree. To add additional python and django modules,add the module names and versions to [requirements.txt](./requirements.txt), and run the `ansible-container build` command to install and incorporate them into the django image.
 
 When the django container starts, it waits for the postgresql database to be ready, and then it performs migrations, all before starting the server process. Use `make django_manage makemigrations` and `make django_manage migrate` to create and run migrations during develoopment.  
 
@@ -81,7 +81,7 @@ More information coming soon...
 
 <h2 id="testing">Testing</h2>
 
-After you've made changes to the app, and you're ready to test, you'll first run `ansible-container build` to create a new set of images containing the latest code. During the build process, the *project* directory, which containins your custom django files, will be copied into the django image at */django*, and your frontend assets, contained in *src*, will be compiled and copied to the *dist* directory, and then copied into the nginx image at */static*.
+After you've made changes to the app, and you're ready to test, you'll first run `ansible-container build` to create a new set of images containing the latest code. During the build process, the [project](./project) directory, which containins your custom django files, will be copied into the django image at */django*, and your frontend assets, contained in [src](./src), will be compiled and copied to the [dist](./dist) directory, and then copied into the nginx image at */static*.
 
 Once the new images are built, run the command `ansible-container run --production` to test the images. This will start containers in production mode, ignoring the *dev_overrides * section of each service definition in `container.yml`, and executing the containers as if they were deployed to production. You'll see the django, nginx and postgresql containers start, and the gulp container stop.
 
