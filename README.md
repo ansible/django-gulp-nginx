@@ -62,7 +62,7 @@ While developing, the gulp container will be running, and actively watching for 
 
 In addition to compiling the frontend components, the gulp service will proxy requests beginning with */static* or */admin* to the django service. The proxy settings are configurable in *gulpfile.js*, so as you add additional routes to the django service, you can expand the number of paths forwarded by the gulp service. 
 
-**NOTE** As you add new routes to the backend, be sure to update the nginx configuration by modifying ansible/main.yml, and adjusting the parameters passed to the chouseknecht.nginx-container-1 role. Specifically, you'll need to update the PROXY_LOCATION value.
+**NOTE** *As you add new routes to the backend, be sure to update the nginx configuration by modifying [ansible/main.yml](./ansible/main.yml), and adjusting the parameters passed to the chouseknecht.nginx-container-1 role. Specifically, you'll need to update the PROXY_LOCATION value.*
 
 ### django
 
@@ -96,7 +96,7 @@ This service will respond to requests for frontend assets, and proxy requests to
 
 Just as before, the posgresql sevice provides the django service with access to a database, and by default stores the database on the *postgres-data* volume.
 
-**NOTE** If you start the image build process by running `make build`, the *postgres-data* volume will be deleted, and the applciation will start with an empty database.
+**NOTE** *If you start the image build process by running `make build`, the *postgres-data* volume will be deleted, and the applciation will start with an empty database.*
 
 <h2 id="openshift">Deploying</h2>
 
