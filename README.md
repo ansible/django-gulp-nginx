@@ -50,7 +50,7 @@ You now have have 3 containers running in development mode, ready for you to beg
 
 <h2 id="developing">Developing</h2>
  
-When you start the containers by running `ansible-container run`, they start in development mode, which means that the *dev_overrides* section of each service definition in [ansbile/container.yml](./blob/master/ansible/container.yml) takes precedence, causing the gulp, django and postgresql services to start, and the nginx service to stop.  
+When you start the containers by running `ansible-container run`, they start in development mode, which means that the *dev_overrides* section of each service definition in [ansbile/container.yml](./ansible/container.yml) takes precedence, causing the gulp, django and postgresql services to start, and the nginx service to stop.  
 
 The frontend code can be found in the *src* directory, and the backend django code is found in the *project* directory. You can begin macking changes right away, and as you do you'll see the results reflected in your browser almost immediately.
 
@@ -72,7 +72,7 @@ When the django container starts, it waits for the postgresql database to be rea
 
 ### postgresql
 
-The posgresql sevice provides the django service with access to a database, and by default stores the database on the *postgres-data* volume. Modify [ansible/condtainer.ym](./blob/master/ansible/container.yml) to set the database name, and credentials.  
+The posgresql sevice provides the django service with access to a database, and by default stores the database on the *postgres-data* volume. Modify [ansible/condtainer.ym](./ansible/container.yml) to set the database name, and credentials.  
 
 <h2 id="adding">Adding Services</h2>
 
@@ -90,7 +90,7 @@ In production this service will run the gunicorn process to accept requests from
 
 ### nginx 
 
-This service will respond to requests for frontend assets, and proxy requests to django service endpoints. Before running `ansible-container build`, if you added new routes to your django application, be sure to update the nginx configuration by modifying [ansible/main.yml](), and adjusting the PROXY_LOCATION parameter passed to the ansible.nginx-container role. This will impact the *nginx.conf* file that gets added to the image.
+This service will respond to requests for frontend assets, and proxy requests to django service endpoints. Before running `ansible-container build`, if you added new routes to your django application, be sure to update the nginx configuration by modifying [ansible/main.yml](./ansible/main.yml), and adjusting the PROXY_LOCATION parameter passed to the ansible.nginx-container role. This will impact the *nginx.conf* file that gets added to the image.
 
 ### postgresql
 
@@ -114,7 +114,7 @@ Pull requests are welcome. If you want to help add features and maintain the pro
 
 <h2 id="dependencies">Dependencies</h2>
 
-- [ansible.nginx-conainer](https://galaxy.ansible.com/ansible/nginx-container)
+- [ansible.nginx-container](https://galaxy.ansible.com/ansible/nginx-container)
 
 <h2 id="author">Authors</h2>
 
