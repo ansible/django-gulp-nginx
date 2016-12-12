@@ -37,7 +37,7 @@ $ cd demo
 $ ansible-container build
 ```
 
-The build process takes a few minutes, the first time, and as it runs, build tasks will appear on your terminal session as the Ansible playbook executes. Once completetd, you'll have a local set of images for your project.
+The build process takes a few minutes to complete, taking longer the first time you run it. As it executes, task names will scroll across your terminal session marking its progression through the Ansible playbook, [main.yml](./blob/master/ansible/main.yml). Once completetd, you'll have a local set of images for your project.
 
 Next, start the containers: 
 
@@ -46,13 +46,13 @@ Next, start the containers:
 $ ansible-container run
 ```
 
-You now have have 3 containers running in development mode, ready for you to begin building your app. To view your app, open a browser and go to [http://localhost:8080](http://localhost:8080), and to log into the django admin site by go to [http://localhost:8080/admin](http://localhost:8080/admin)
+You now have have 3 containers running in development mode, ready for you to begin building your app. To view your app, open a browser and go to [http://localhost:8080](http://localhost:8080). And to log into the django admin site, go to [http://localhost:8080/admin](http://localhost:8080/admin)
 
 <h2 id="developing">Developing</h2>
  
-When you start the containers by running `ansible-container run`, they start in development mode, which means that the *dev_overrides* section of each service definition in [ansbile/container.yml](./blob/master/ansible/container.yml) takes precedence, causing the gulp, django and postgresql services to start, and nginx to stop.  
+When you start the containers by running `ansible-container run`, they start in development mode, which means that the *dev_overrides* section of each service definition in [ansbile/container.yml](./blob/master/ansible/container.yml) takes precedence, causing the gulp, django and postgresql services to start, and the nginx service to stop.  
 
-The frontend code can be found in the *src* directory, and the backend django code is found in the *project* directory. You can begin macking changes right away, and you will see the results reflected in your browser almost immediately.
+The frontend code can be found in the *src* directory, and the backend django code is found in the *project* directory. You can begin macking changes right away, and as you do you'll see the results reflected in your browser almost immediately.
 
 Here's a brief overview of each of the running services:
 
@@ -116,7 +116,9 @@ Pull requests are welcome. If you want to help add features and maintain the pro
 
 - [ansible.nginx-conainer](https://galaxy.ansible.com/ansible/nginx-container)
 
-<h2 id="author">Author</h2>
+<h2 id="author">Authors</h2>
 
-[chouseknecht](https://github.com/chouseknecht)
+View [AUTHORS](./AUTHORS) for a list contributors. Thanks everyone!
+
+
 
