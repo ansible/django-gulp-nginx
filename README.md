@@ -1,10 +1,13 @@
 # django-gulp-nginx
 
-A framework for building containerized [django](https://www.djangoproject.com/) applications. Utilizes [Ansible Container](https://github.com/ansible/ansible-container) to manage each phase of the application lifecycle, and enables you to begin developing immediately in containers. 
+A framework for building containerized [django](https://www.djangoproject.com/) applications. Utilizes [Ansible Container](https://github.com/ansible/ansible-container) to manage each phase of the application lifecycle, and enables you to begin developing immediately in containers.
+
+The following topics will help you get started: 
 
 - [Requirements](#requirements)
 - [Getting Started](#getting-started)
 - [Developing](#developing)
+- [Adding Service](#adding)
 - [Testing](#testing)
 - [Deploying](#openshift)
 - [Contributing](#contributing)
@@ -70,6 +73,10 @@ When the django container starts, it waits for the postgresql database to be rea
 ### postgresql
 
 The posgresql sevice provides the django service with access to a database, and by default stores the database on the *postgres-data* volume. Modify [ansible/condtainer.ym](./blob/master/ansible/container.yml) to set the database name, and credentials.  
+
+<h2 id="testing">Testing</h2>
+
+More information coming soon... 
 
 <h2 id="testing">Testing</h2>
 
