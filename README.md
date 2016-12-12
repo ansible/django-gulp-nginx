@@ -11,9 +11,9 @@ The following topics will help you get started:
 - [Testing](#testing)
 - [Deploying](#openshift)
 - [Contributing](#contributing)
-- [License](#license)
 - [Dependencies](#dependencies)
-- [Author](#author)
+- [License](#license)
+- [Authors](#author)
 
 <h2 id="requirements">Requirements</h2>
 
@@ -98,7 +98,7 @@ This service will respond to requests for frontend assets, and proxy requests to
 Just as before, the posgresql sevice provides the django service with access to a database, and by default stores the database on the *postgres-data* volume.
 
 NOTE
-> *If you start the image build process by running `make build`, the *postgres-data* volume will be deleted, and the applciation will start with an empty database.*
+> *If you start the image build process by running `make build`, the postgres-data volume will be deleted, and the applciation will start with an empty database.*
 
 <h2 id="openshift">Deploying</h2>
 
@@ -110,13 +110,15 @@ If you work with this project and find issues, please [submit an issue](https://
 
 Pull requests are welcome. If you want to help add features and maintain the project, please feel free to jump in, and we'll review your request quickly, and help you get it merged.
 
+<h2 id="dependencies">Dependencies</h2>
+
+This project depends on the following [Galaxy](https://galaxy.ansible.com) roles:
+
+- [ansible.nginx-container](https://galaxy.ansible.com/ansible/nginx-container)
+
 <h2 id="license">License</h2>
 
 [Apache v2](https://www.apache.org/licenses/LICENSE-2.0)
-
-<h2 id="dependencies">Dependencies</h2>
-
-- [ansible.nginx-container](https://galaxy.ansible.com/ansible/nginx-container)
 
 <h2 id="author">Authors</h2>
 
