@@ -2,7 +2,7 @@
 
 # django-gulp-nginx
 
-A framework for building containerized [django](https://www.djangoproject.com/) applications. Utilizes [Ansible Container](https://github.com/ansible/ansible-container) to manage each phase of the application lifecycle, and enables you to begin developing immediately in containers.
+A framework for building containerized [django](https://www.djangoproject.com/) applications. Utilizes [Ansible Container](https://github.com/ansible/ansible-container) to manage each phase of the application lifecycle, allowing you to begin developing immediately with containers.
 
 Includes django, gulp, nginx, and postgresql services, pre-configured to work together, and ready for development. You can easily adjsut the settings of each, as well as drop in new services directly from [Ansible Galaxy](https://galaxy.ansible.com). The following topics will help you get started:  
 
@@ -31,13 +31,13 @@ Before starting, you'll need to have the following:
 To start creating your Django application, create a new directory and initialize it with a copy of this project:  
 
 ```
-# Create a new directory for you project
+# Create a new directory for your project
 $ mkdir demo
 
 # Set the working directory
 $ cd demo 
 
-# Initialize your project
+# Initialize the project
 $ ansible-container init ansible.django-gulp-nginx
 ```
 
@@ -48,7 +48,7 @@ Next, build a local copy of the project's images. From the new project directory
 $ ansible-container build
 ```
 
-The build process takes a few minutes to complete, taking longer the first time you run it. As it executes, task names will scroll across your session window marking its progression through the Ansible playbook, [main.yml](./blob/master/ansible/main.yml). 
+The build process will take a few minutes to complete, taking longer the first time you run it. As it executes, task names will scroll across your session window marking its progression through the Ansible playbook, [main.yml](./blob/master/ansible/main.yml). 
 
 Once completed, you'll have a local copy of the images, which you can use to create containers and run the application. When you're ready to start the application, run the following:
 
@@ -63,7 +63,7 @@ The project's containers are now running, ready for building your new app. To vi
  
 When you start the containers by running `ansible-container run`, they start in development mode, which means that the *dev_overrides* section of each service definition in [ansbile/container.yml](./ansible/container.yml) takes precedence, causing the gulp, django and postgresql services to start, and the nginx service to stop.  
 
-The frontend code can be found in the [src](./src) directory, and the backend django code is found in the [project](./project) directory. You can begin macking changes right away, and as you do you'll see the results reflected in your browser almost immediately.
+The frontend code can be found in the [src](./src) directory, and the backend django code is found in the [project](./project) directory. You can begin macking changes right away, and as you do, you'll see the results reflected in your browser almost immediately.
 
 Here's a brief overview of each of the running services:
 
@@ -88,7 +88,33 @@ The posgresql sevice provides the django service with access to a database, and 
 
 <h2 id="adding">Adding Services</h2>
 
-More information coming soon... 
+You can add preconfigured services to the application by installing *Container Enabled* roles directly from the [Galaxy web site](https://galaxy.ansible.com). Look for roles on the site by going to the [Browse Roles](https://galaxy.ansible.com/list#/roles?page=1&page_size=10&role_type=CON) page, setting the filter to *Role Type*, and choosing *Containr Enabled*. 
+
+For example, if you want to install a Redis service, you can install the `j00bar.redis-container` role by running the following:
+
+```
+# Set the working directory to your project root
+$ cd demo
+
+# Install the role
+$ ansible-container install j00bar.redis-container
+```
+
+After the install completes the new service will be included in [ansible/container.yml](./ansible/container.yml) and [ansible/main.yml](./ansible/main.yml), and you can edit the files directly to adjust the configuration. 
+
+Start the build process to update the project's images by running the following:
+
+```
+# Rebuild the project images
+$ ansible-container build 
+```
+
+After the build process completes, restart the application by running the following:
+
+```
+# Run the application 
+$ ansible-container run 
+```
 
 <h2 id="testing">Testing</h2>
 
@@ -113,7 +139,47 @@ NOTE
 
 <h2 id="openshift">Deploying</h2>
 
-A deployment example will be added. Stay tuned.
+Ansible Container can deploy to Kubernetes and OpenShift. For the purposes of demonstrating the deployment workflow, we'll use OpenShift. If you want to carry out the actual steps, you'll need access to an OpenShift instance. The [Install and Configure Openshift](http://docs.ansible.com/ansible-container/configure_openshift.html) guide at our doc site provides a how-to that will help you create a containerized instance.
+
+Using the `oc` command, create a project that matches the root directory name of your project:
+
+```
+# Create a new project
+oc new-project demo
+```
+
+You can then push the project images to the OpenShift registry. If you followed the guide, and created a local instance, then the following command will push the images to the local registry:
+
+```
+# Set the working directory to the project root
+$ cd demo 
+
+# Push the images to the local OpenShift registry
+$ ansible-container push --push-to https://local.openshift/demo --username developer --password $(oc whoami -t)
+```
+
+With the images in the local registry, you can generate the deployment playbook and role by running the following:
+
+```
+# Generate the deployment artifacts
+$ ansible-container shipit openshift --pull-from https://local.openshift/demo
+```
+
+The deployment playbook gets created in the *ansible* directory. Use the following commands to create an inventory file, and execute the playbook:
+
+```
+# Set the working directory to ansible
+$ cd ansible
+
+# Create an inventory file containing a single entry
+$ echo "localhost">inventory
+
+# Run the playbook
+$ ansible-playbook -i inventory shipit-openshift.yml
+```
+
+Once the playbook completes, log into your OpenShift console to check the status of the deployment. From the application menu, choose *Routes* to find the hostname that points to your nginx service. 
+
 
 <h2 id="contributing">Contributing</h2>
 
