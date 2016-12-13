@@ -1,7 +1,7 @@
 {
   "name": "django_angular_boilerplate",
   "version": "0.0.0",
-  "homepage": "https://github.com/j00bar/django-gulp-nginx",
+  "homepage": "https://github.com/ansible/django-gulp-nginx",
   "license": "Apache v2",
   "ignore": [
     "**/.*",
