@@ -55,7 +55,7 @@ const processors = [
 ]
 
 gulp.task('sass', function() {
-  return gulp.src('src/sass/styles.scss')
+  return gulp.src('src/sass/style.scss')
     .pipe(plumber({ errorHandler: onError }))
     .pipe(maps.init())
     .pipe(sass())
@@ -73,7 +73,7 @@ gulp.task('clean-js', function() {
 gulp.task('js', ['clean-js'], function() {
     return gulp.src('src/js/**/*.js')
         .pipe(maps.init())
-        .pipe(concat('demo.min.js'))
+        .pipe(concat('bundle.min.js'))
         .pipe(uglify().on('error', util.log))
         .pipe(maps.write())
         .pipe(gulp.dest('dist/js'));

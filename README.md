@@ -4,7 +4,7 @@
 
 A framework for building containerized [django](https://www.djangoproject.com/) applications. Utilizes [Ansible Container](https://github.com/ansible/ansible-container) to manage each phase of the application lifecycle, and enables you to begin developing immediately in containers.
 
-The following topics will help you get started: 
+Includes django, gulp, nginx, and postgresql services, pre-configured to work together, and ready for development. You can easily adjsut the settings of each, as well as drop in new services directly from [Ansible Galaxy](https://galaxy.ansible.com). The following topics will help you get started:  
 
 - [Requirements](#requirements)
 - [Getting Started](#getting-started)
@@ -19,6 +19,8 @@ The following topics will help you get started:
 
 <h2 id="requirements">Requirements</h2>
 
+Before starting, you'll need to have the following:
+
 - Ansible Container, running from source. See the [Running from source guide](http://docs.ansible.com/ansible-container/installation.html#running-from-source), for assistance. 
 - [Docker Engine](https://www.docker.com/products/docker-engine) or [Docker for Mac](https://docs.docker.com/engine/installation/mac/)
 - make
@@ -26,7 +28,7 @@ The following topics will help you get started:
 
 <h2 id="getting-started">Getting Started</h2>
 
-To start creating your next Django application, create a new directory and initialize it with this project:  
+To start creating your Django application, create a new directory and initialize it with a copy of this project:  
 
 ```
 # Create a new directory for you project
@@ -39,23 +41,23 @@ $ cd demo
 $ ansible-container init ansible.django-gulp-nginx
 ```
 
-From your new project directory, start the build process to create a local copy of the project images by running the following: 
+Next, build a local copy of the project's images. From the new project directory, start the build process by running the following: 
 
 ```
 # Create the container images
 $ ansible-container build
 ```
 
-The build process takes a few minutes to complete, taking longer the first time you run it. As it executes, task names will scroll across your terminal session marking its progression through the Ansible playbook, [main.yml](./blob/master/ansible/main.yml). Once completetd, you'll have a local set of images for your project.
+The build process takes a few minutes to complete, taking longer the first time you run it. As it executes, task names will scroll across your session window marking its progression through the Ansible playbook, [main.yml](./blob/master/ansible/main.yml). 
 
-Next, start the containers: 
+Once completed, you'll have a local copy of the images, which you can use to create containers and run the application. When you're ready to start the application, run the following:
 
 ```
 # Start the containers
 $ ansible-container run
 ```
 
-The project's containers are now running, ready for you to begin building your app. To view the app, open a browser and go to [http://localhost:8080](http://localhost:8080). And to log into the django admin site, go to [http://localhost:8080/admin](http://localhost:8080/admin)
+The project's containers are now running, ready for building your new app. To view the app, open a browser and go to [http://localhost:8080](http://localhost:8080), where you'll see a simple "Hello World!" message.
 
 <h2 id="developing">Developing</h2>
  
