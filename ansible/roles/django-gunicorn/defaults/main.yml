@@ -9,4 +9,4 @@ DJANGO_RPM_DEPS:
 DJANGO_USER: django
 DJANGO_ROOT: /django
 DJANGO_VENV: /venv
-DJANGO_STATIC_ROOT: /static
+DJANGO_STATIC_ROOT: /django/dist

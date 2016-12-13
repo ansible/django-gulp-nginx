@@ -86,8 +86,8 @@
 
 - name: Fetch built assets
   synchronize:
-    src: "{{ NODE_HOME }}/dist"
-    dest: /tmp
+    src: "{{ NODE_HOME }}/dist/"
+    dest: /tmp/static
     rsync_opts: --blocking-io
     mode: pull
   remote_user: "{{ NODE_USER }}"

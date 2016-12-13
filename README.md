@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/ansible/django-gulp-nginx.svg?branch=master)](https://travis-ci.org/ansible/django-gulp-nginx)
+
 # django-gulp-nginx
 
 A framework for building containerized [django](https://www.djangoproject.com/) applications. Utilizes [Ansible Container](https://github.com/ansible/ansible-container) to manage each phase of the application lifecycle, and enables you to begin developing immediately in containers.
@@ -24,15 +26,22 @@ The following topics will help you get started:
 
 <h2 id="getting-started">Getting Started</h2>
 
-To start developing, it's as easy as...
+To start creating your next Django application, create a new directory and initialize it with this project:  
 
 ```
-# Clone this project into a local directory.
-$ git clone https://github.com/chouseknecht/django-gulp-nginx.git demo
+# Create a new directory for you project
+$ mkdir demo
 
-# Set the working directory to the project root
+# Set the working directory
 $ cd demo 
 
+# Initialize your project
+$ ansible-container init ansible.django-gulp-nginx
+```
+
+From your new project directory, start the build process to create a local copy of the project images by running the following: 
+
+```
 # Create the container images
 $ ansible-container build
 ```
@@ -46,7 +55,7 @@ Next, start the containers:
 $ ansible-container run
 ```
 
-You now have have 3 containers running in development mode, ready for you to begin building your app. To view your app, open a browser and go to [http://localhost:8080](http://localhost:8080). And to log into the django admin site, go to [http://localhost:8080/admin](http://localhost:8080/admin)
+The project's containers are now running, ready for you to begin building your app. To view the app, open a browser and go to [http://localhost:8080](http://localhost:8080). And to log into the django admin site, go to [http://localhost:8080/admin](http://localhost:8080/admin)
 
 <h2 id="developing">Developing</h2>
  

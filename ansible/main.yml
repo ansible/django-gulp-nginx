@@ -13,7 +13,7 @@
   roles:
   - role: ansible.nginx-container
     ASSET_PATHS:
-    - /tmp/dist
+    - /tmp/static
     PROXY: yes
     PROXY_PASS: http://django:8080
-    PROXY_LOCATION: "~* /(admin|static)"
+    PROXY_LOCATION: "~* /(admin)"

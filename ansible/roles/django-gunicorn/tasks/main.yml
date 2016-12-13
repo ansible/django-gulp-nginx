@@ -27,17 +27,17 @@
     createhome: yes
     home: "{{ DJANGO_ROOT }}"
 
+- name: Change /django permissions
+  file:
+    path: "{{ DJANGO_ROOT }}"
+    state: directory
+    owner: "{{ DJANGO_USER }}" 
+    group: root
+    mode: 0775 
+
 - name: Make virtualenv dir
   file:
     name: "{{ DJANGO_VENV }}"
-    state: directory
-    owner: "{{ DJANGO_USER }}"
-    group: root
-    mode: 0775
-
-- name: Make staticfiles dir
-  file:
-    name: "{{ DJANGO_STATIC_ROOT }}"
     state: directory
     owner: "{{ DJANGO_USER }}"
     group: root
@@ -56,18 +56,24 @@
     dest: "{{ DJANGO_ROOT }}"
   remote_user: "{{ DJANGO_USER }}"
 
-- name: Create dist dir
-  file:
-    path: "{{ DJANGO_ROOT }}/dist"
-    state: directory
-    owner: django
-    mode: 0775
-
 - name: Install requirements
   pip:
     executable: "{{ DJANGO_VENV }}/bin/pip"
     requirements: "{{ DJANGO_ROOT }}/requirements.txt"
   remote_user: "{{ DJANGO_USER }}"
+
+- name: Remove staticfiles dir
+  file: 
+    name: "{{ DJANGO_STATIC_ROOT }}"
+    state: absent
+
+- name: Make staticfiles dir
+  file:
+    name: "{{ DJANGO_STATIC_ROOT }}"
+    state: directory
+    owner: "{{ DJANGO_USER }}"
+    group: root
+    mode: 0775
 
 - name: Collect staticfiles
   command: "{{ DJANGO_VENV }}/bin/python manage.py collectstatic --noinput"
@@ -75,13 +81,12 @@
     chdir: "{{ DJANGO_ROOT }}"
   remote_user: "{{ DJANGO_USER }}"
 
-- name: Change /django permissions
-  file:
-    path: "{{ DJANGO_ROOT }}"
-    state: directory
-    owner: django
-    group: root
-    mode: 0775 
+- name: Fetch Django static assets
+  synchronize:
+    src: "{{ DJANGO_STATIC_ROOT }}/"
+    dest: /tmp/static
+    mode: pull
+  remote_user: "{{ DJANGO_USER }}"
 
 - name: Copy entrypoint
   copy:
