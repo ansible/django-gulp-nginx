@@ -21,16 +21,18 @@
     group: root 
     mode: 0775
 
-- name: Remove /dist 
-  file:
-    path: "{{ NODE_HOME }}/dist"
-    state: absent
-
-- name: Create /dist  
+- name: Create NODE_HOME/dist  
   file:
     path: "{{ NODE_HOME }}/dist"
     state: directory 
     mode: 0775
+
+- name: Copy source
+  copy:
+    src: "{{ lookup('pipe','dirname `pwd`') }}/"
+    dest: "{{ NODE_HOME }}/dist"
+    owner: "{{ NODE_USER }}"
+  remote_user: "{{ NODE_USER }}"
 
 - name: Install nodejs
   yum:
