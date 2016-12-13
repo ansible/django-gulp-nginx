@@ -16,4 +16,4 @@
     - /tmp/static
     PROXY: yes
     PROXY_PASS: http://django:8080
-    PROXY_LOCATION: "~* /(admin)"
+    PROXY_LOCATION: "~* /(admin|api)"
