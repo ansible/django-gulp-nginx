@@ -28,10 +28,9 @@
     mode: 0775
 
 - name: Copy static 
-  copy:
+  synchronize:
     src: /tmp/static/ 
     dest: "{{ NODE_HOME }}/dist/"
-    owner: "{{ NODE_USER }}"
   remote_user: "{{ NODE_USER }}"
 
 - name: Install nodejs
@@ -90,7 +89,6 @@
   synchronize:
     src: "{{ NODE_HOME }}/dist/"
     dest: /tmp/static
-    rsync_opts: --blocking-io
     mode: pull
   remote_user: "{{ NODE_USER }}"
 
