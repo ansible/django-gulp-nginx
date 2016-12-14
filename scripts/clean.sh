@@ -16,11 +16,12 @@ if [[ $1 == 'all' || $1 == 'containers' ]]; then
 fi
 
 if [[ $1 == 'all' || $1 == 'images' ]]; then
-    echo "Removing all django-gulp-nginx images..."
-    images=$(docker images -a --format "{{.Repository}}:{{.Tag}}" | grep django-gulp-nginx | wc -l | tr -d '[[:space:]]')
+    project_name=$(basename $(python -c "from os import path; print(path.abspath(path.join(path.dirname('$0'), '..')))"))
+    echo "Removing all ${project_name} images..."
+    images=$(docker images -a --format "{{.Repository}}:{{.Tag}}" | grep ${project_name} | wc -l | tr -d '[[:space:]]')
     if [ ${images} -gt 0 ]; then
-        docker rmi --force $(docker images -a --format "{{.Repository}}:{{.Tag}}" | grep django-gulp-nginx)
+        docker rmi --force $(docker images -a --format "{{.Repository}}:{{.Tag}}" | grep ${project_name})
     else
-        echo "No django-gulp-nginx images found"
+        echo "No ${project_name} images found"
     fi
 fi
