@@ -27,12 +27,6 @@
     state: directory 
     mode: 0775
 
-- name: Copy static 
-  synchronize:
-    src: /tmp/static/ 
-    dest: "{{ NODE_HOME }}/dist/"
-  remote_user: "{{ NODE_USER }}"
-
 - name: Install nodejs
   yum:
     name: "{{ item }}" 
@@ -40,6 +34,12 @@
     - "{{ NODE_RPM_URL }}"
     - rsync
     - git 
+
+- name: Copy static 
+  synchronize:
+    src: /tmp/static/ 
+    dest: "{{ NODE_HOME }}/dist/"
+  remote_user: "{{ NODE_USER }}"
 
 - name: Symlink package.json
   file:
