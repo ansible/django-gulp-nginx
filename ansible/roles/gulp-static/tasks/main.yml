@@ -25,7 +25,8 @@
   file:
     path: "{{ NODE_HOME }}/dist"
     state: directory 
-    mode: 0775
+    owner: "{{ NODE_USER }}"
+    mode: 0777
 
 - name: Install nodejs
   yum:
