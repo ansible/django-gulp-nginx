@@ -1,31 +1,28 @@
 language: python
 dist: trusty
 sudo: required
-
 services:
-  - docker
-
+- docker
 before_install:
-  - sudo apt-add-repository 'deb http://archive.ubuntu.com/ubuntu trusty-backports universe'
-  - sudo apt-get update -qq
-
+- sudo apt-add-repository 'deb http://archive.ubuntu.com/ubuntu trusty-backports universe'
+- sudo apt-get update -qq
 install:
-  - pip install ansible
-  - pip install -e git+https://github.com/ansible/ansible-container.git@develop#egg=ansible_container
-
+- pip install ansible
+- pip install -e git+https://github.com/ansible/ansible-container.git@develop#egg=ansible_container
 script:
-  - docker version
-  - docker-compose version
-  - docker info
-  - ansible-container build
-  - ansible-container run -d
-  - docker ps -a
-  - docker images
-  - cd test
-  - ansible-playbook -i inventory test.yml
-  - cd .. 
-  - ansible-container stop -f
-
+- docker version
+- docker-compose version
+- docker info
+- ansible-container build
+- ansible-container run -d
+- docker ps -a
+- docker images
+- cd test
+- ansible-playbook -i inventory test.yml
+- cd ..
+- ansible-container stop -f
 notifications:
   email: false
   webhooks: https://galaxy.ansible.com/api/v1/notifications/
+  slack:
+    secure: WkaYdB3DDo8NHamEgNGapElLRRt5452zt2NW3gG9pFgDUnnt90FS8lJ/NOoVFAY0BY9D666YfDpSQcnidL5l/SoYwfT4IcjfFv3VFWTLhe3QATdPDDQ/hyEGgd7U9jstVDmQk32n2zTGWqZF+pS+1MNiJXz40GheO+XC89mmmkQcEmcpcAO/s55z6wMEqQJflu27dU45TLr8vKCfwfim4PeHSYYVWZXfy0Jen6hW8h6uYZOyLRnevy7NrRQCgSpgseEFTuM9Y4rbWgjztm5W15mDM1ML/RJORkzBVbGBx8WXYoPIEdNb0ABmUwREDUHacibXZpzptHNCz1GeL4sUAyLN6HVx5zatbSoaehbtENjnVtUQw4Z0USS/+ZdYY7+PnfSWSjK9ZAw2kDRFp7p/Kj8wft+W1gV3NwwKxrHP2kjk8dV/Dz1Kvo2fRayAE92Eah6+TBHE5CEPcswQ7emhdXnBIUNPY6mYsSrpfbKkvsl1+XGf/wgM5/3l7q1WlVEwKU0njDREBKtH6nrgS+3cgJrWF2VP8XWue7K4yzYC9l8GrmHCezwQZGOg7wvrYKaO3SfU4i4CgSjcjm9JFU5kYeQI50PdzceRm1wCdtDddKGVx2NjFuDFLl0zTDfsjtbiI+VbxDpMTFAPlLqKea9kSd4aMj3L2o7qPDYtwa2foyc=
