@@ -49,6 +49,15 @@
     owner: "{{ NODE_USER }}"
     state: link
 
+- name: Clean npm cache 
+  command: npm cache clean -f
+
+- name: Install the node helper
+  command: npm install -g n
+
+- name: Install the latest node
+  command: n stable
+
 - name: Install node deps
   command: npm install
     chdir="{{ NODE_ROOT }}/"
