@@ -35,7 +35,6 @@ services:
       - $PWD:{{ DJANGO_ROOT }}
       depends_on:
       - postgresql
-
     options:
       kube:
         runAsUser: 1000
@@ -50,13 +49,12 @@ services:
     volumes:
       - $PWD:{{ NODE_HOME }}
     dev_overrides:
-      command: [/usr/bin/dumb-init, /usr/bin/gulp]
+      command: [/usr/bin/dumb-init, /usr/local/bin/gulp]
       ports:
       - 8080:{{ GULP_DEV_PORT }}
       - 3001:3001
       links:
       - django
-
     options:
       kube:
         state: absent
@@ -74,22 +72,19 @@ services:
     dev_overrides:
       ports: []
       command: /bin/false
-
     options:
       kube:
         runAsUser: 1000 
 
   postgresql:
-    image: openshift/postgresql-92-centos7
+    image: ansible/postgresql:latest
     environment:
-    - POSTGRESQL_DATABASE={{ POSTGRES_DB }}
-    - POSTGRESQL_USER={{ POSTGRES_USER }}
-    - POSTGRESQL_PASSWORD={{ POSTGRES_PASSWORD }}
-    expose:
-    - 5432
+    - POSTGRES_DB=mydb
+    - POSTGRES_USER=admin
+    - POSTGRES_PASS=sesame
+    - PGDATA=/var/lib/pgsql/data/userdata
     volumes:
     - postgres-data:/var/lib/pgsql/data
-
     options:
       openshift:
         persistent_volume_claims:

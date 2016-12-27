@@ -36,11 +36,32 @@
     - rsync
     - git 
 
-- name: Copy static 
+- name: Create sync dir
+  file:
+    path: /tmp/rsync
+    state: directory
+    owner: "{{ NODE_USER }}"
+    mode: 0777  
+
+- name: Sync static 
   synchronize:
     src: /tmp/static/ 
-    dest: "{{ NODE_HOME }}/dist/"
+    dest: /tmp/rsync/
   remote_user: "{{ NODE_USER }}"
+
+- name: Stat static files
+  command: ls -l /tmp/rsync
+  register: output
+
+- debug: var=output.stdout_lines
+
+- name: Copy static files 
+  shell: "cp -R /tmp/rsync/* {{ NODE_HOME }}/dist"
+
+- name: Remove temp rsync dir
+  file:
+    path: /tmp/rsync
+    state: absent
 
 - name: Symlink package.json
   file:
