@@ -2,7 +2,7 @@ version: '2'
 defaults:
   POSTGRES_USER: django
   POSTGRES_PASSWORD: sesame
-  POSTGRES_DB: django
+  POSTGRES_DB: demo
   DJANGO_ROOT: /django
   DJANGO_USER: django
   DJANGO_PORT: 8080
@@ -79,9 +79,9 @@ services:
   postgresql:
     image: ansible/postgresql:latest
     environment:
-    - POSTGRES_DB=mydb
-    - POSTGRES_USER=admin
-    - POSTGRES_PASS=sesame
+    - POSTGRES_DB={{ POSTGRES_DB }}
+    - POSTGRES_USER={{ POSTGRES_USER }}
+    - POSTGRES_PASS={{ POSTGRES_PASSWORD }}
     - PGDATA=/var/lib/pgsql/data/userdata
     volumes:
     - postgres-data:/var/lib/pgsql/data
