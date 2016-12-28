@@ -2,7 +2,7 @@ version: '2'
 defaults:
   POSTGRES_USER: django
   POSTGRES_PASSWORD: sesame
-  POSTGRES_DB: demo
+  POSTGRES_DB: django
   DJANGO_ROOT: /django
   DJANGO_USER: django
   DJANGO_PORT: 8080
