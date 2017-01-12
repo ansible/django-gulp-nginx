@@ -84,7 +84,7 @@ When the django container starts, it waits for the postgresql database to be rea
 
 ### postgresql
 
-The posgresql sevice provides the django service with access to a database, and by default stores the database on the *postgres-data* volume. Modify [ansible/condtainer.ym](./ansible/container.yml) to set the database name, and credentials.  
+The posgresql sevice provides the django service with access to a database, and by default stores the database on the *postgres-data* volume. Modify [ansible/container.ym](./ansible/container.yml) to set the database name, and credentials.  
 
 <h2 id="adding">Adding Services</h2>
 
