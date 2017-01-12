@@ -85,6 +85,8 @@ services:
     - PGDATA=/var/lib/pgsql/data/userdata
     volumes:
     - postgres-data:/var/lib/pgsql/data
+    expose:
+    - 5432
     options:
       openshift:
         persistent_volume_claims:
