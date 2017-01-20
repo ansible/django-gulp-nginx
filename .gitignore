@@ -3,7 +3,8 @@
 .ansible
 dist/
 *.retry
-*.pyc
+__pycache__/
+*.py[cod]
 *.log
 .v8flags*
 .bash_history
