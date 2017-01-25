@@ -35,6 +35,7 @@
     - "{{ NODE_RPM_URL }}"
     - rsync
     - git 
+    - which
 
 - name: Create sync dir
   file:
