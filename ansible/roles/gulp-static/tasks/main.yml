@@ -12,6 +12,7 @@
     state: present
     createhome: yes
     home: "{{ NODE_HOME }}/"
+    group: root
 
 - name: Make node_modules directory
   file:
@@ -123,4 +124,3 @@
     dest: /tmp/static
     mode: pull
   remote_user: "{{ NODE_USER }}"
-

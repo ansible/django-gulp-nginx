@@ -9,6 +9,9 @@ __pycache__/
 .v8flags*
 .bash_history
 .cache
+.config
+.local
+.pki
 ansible/roles/django-gulp-nginx-openshift/
 ansible/roles/django-gulp-nginx-kubernetes/
 ansible/shipit-openshift.yml
