@@ -31,7 +31,8 @@
 
 - name: Install nodejs
   yum:
-    name: "{{ item }}" 
+    name: "{{ item }}"
+    disable_gpg_check: yes
   with_items:
     - "{{ NODE_RPM_URL }}"
     - rsync
