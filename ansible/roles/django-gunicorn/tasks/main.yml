@@ -18,7 +18,6 @@
     state: latest
     update_cache: yes
     disable_gpg_check: yes
-  ignore_errors: yes
   with_items: "{{ DJANGO_RPM_DEPS }}"
 
 - name: Make Django user
