@@ -10,12 +10,15 @@
   yum: 
     name: epel-release
     state: present 
+    disable_gpg_check: yes
 
 - name: Install python deps
   yum:
     name: "{{ item }}"
     state: latest
     update_cache: yes
+    disable_gpg_check: yes
+  ignore_errors: yes
   with_items: "{{ DJANGO_RPM_DEPS }}"
 
 - name: Make Django user
