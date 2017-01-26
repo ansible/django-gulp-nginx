@@ -84,6 +84,7 @@
 - name: Install node deps
   command: npm install
     chdir="{{ NODE_ROOT }}/"
+  remote_user: "{{ NODE_USER }}"
  
 - name: Check if gulp is installed
   stat:
