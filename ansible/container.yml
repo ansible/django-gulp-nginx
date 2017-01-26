@@ -47,7 +47,7 @@ services:
     environment:
       NODE_HOME: '{{ NODE_HOME }}'
     volumes:
-      - $PWD:{{ NODE_HOME }}
+      - $PWD:{{ NODE_HOME }}:z
     dev_overrides:
       command: [/usr/bin/dumb-init, /usr/local/bin/gulp]
       ports:
