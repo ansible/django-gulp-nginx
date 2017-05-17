@@ -54,7 +54,7 @@
 
 - name: Copy source
   synchronize:
-    src: "{{ lookup('pipe','dirname `pwd`') }}/"
+    src: /src/
     dest: "{{ DJANGO_ROOT }}"
   remote_user: "{{ DJANGO_USER }}"
 
@@ -83,12 +83,9 @@
     chdir: "{{ DJANGO_ROOT }}"
   remote_user: "{{ DJANGO_USER }}"
 
-- name: Fetch Django static assets
-  synchronize:
-    src: "{{ DJANGO_STATIC_ROOT }}/"
-    dest: /tmp/static
-    mode: pull
-  remote_user: "{{ DJANGO_USER }}"
+- name: Copy static assets to shared volume
+  command: "cp -R {{ DJANGO_STATIC_ROOT }}/* /tmp/static"
+  ignore_errors: yes
 
 - name: Copy entrypoint
   copy:

@@ -16,3 +16,4 @@ ansible/roles/django-gulp-nginx-openshift/
 ansible/roles/django-gulp-nginx-kubernetes/
 ansible/shipit-openshift.yml
 ansible/shipit-kubernetes.yml
+ansible-deployment/*
