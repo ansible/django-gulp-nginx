@@ -1,5 +1,11 @@
 version: '2'
 
+settings:
+  conductor:
+    base: 'centos:7'
+    volumes:
+    - temp-space:/tmp
+
 defaults:
   POSTGRES_USER: django
   POSTGRES_PASSWORD: sesame
@@ -30,8 +36,6 @@ services:
     user: '{{ DJANGO_USER }}'
     command: ['/usr/bin/dumb-init', '{{ DJANGO_VENV }}/bin/gunicorn', -w, '2', -b, '0.0.0.0:{{ DJANGO_PORT }}', 'project.wsgi:application']
     entrypoint: [/usr/bin/entrypoint.sh]
-    volumes:
-    - temp-space:/tmp/static:rw
     dev_overrides:
       volumes:
       - '$PWD:{{ DJANGO_ROOT }}'
@@ -43,28 +47,27 @@ services:
     from: 'centos:7'
     roles:
     - role: gulp-static 
-    user: '{{ NODE_USER }}'
     working_dir: '{{ NODE_HOME }}'
     command: ['/bin/false']
     environment:
       NODE_HOME: '{{ NODE_HOME }}'
-    volumes:
-      - '$PWD:{{ NODE_HOME }}'
-      - temp-space:/tmp/static:rw
     dev_overrides:
+      entrypoint: [/entrypoint.sh]
       command: [/usr/bin/dumb-init, /usr/local/bin/gulp]
       ports:
       - '8080:{{ GULP_DEV_PORT }}'
       - 3001:3001
       links:
       - django
+      volumes:
+      - '$PWD:{{ NODE_HOME }}'
 
   nginx:
     from: 'centos:7'
     roles:
     - role: ansible.nginx-container
       ASSET_PATHS:
-      - /src/dist
+      - /tmp/dist
       PROXY: yes
       PROXY_PASS: 'http://django:8080'
       PROXY_LOCATION: "~* /(admin|api)"

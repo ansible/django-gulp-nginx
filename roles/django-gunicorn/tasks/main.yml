@@ -29,7 +29,7 @@
     createhome: yes
     home: "{{ DJANGO_ROOT }}"
 
-- name: Change /django permissions
+- name: Create /django 
   file:
     path: "{{ DJANGO_ROOT }}"
     state: directory
@@ -52,11 +52,17 @@
     creates: "{{ DJANGO_VENV }}/bin/python"
   remote_user: "{{ DJANGO_USER }}"
 
-- name: Copy source
+- name: Copy core source items 
   synchronize:
-    src: /src/
+    src: "/src/{{ item }}"
     dest: "{{ DJANGO_ROOT }}"
   remote_user: "{{ DJANGO_USER }}"
+  with_items:
+  - manage.py
+  - package.json
+  - project
+  - requirements.txt
+  - requirements.yml
 
 - name: Install requirements
   pip:
@@ -83,9 +89,11 @@
     chdir: "{{ DJANGO_ROOT }}"
   remote_user: "{{ DJANGO_USER }}"
 
-- name: Copy static assets to shared volume
-  command: "cp -R {{ DJANGO_STATIC_ROOT }}/* /tmp/static"
-  ignore_errors: yes
+- name: Copy static assets to conductor 
+  synchronize:
+    src: "{{ DJANGO_STATIC_ROOT}}/"
+    dest: /tmp/django/ 
+    mode: pull
 
 - name: Copy entrypoint
   copy:

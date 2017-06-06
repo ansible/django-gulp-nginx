@@ -12,23 +12,25 @@
     state: present
     createhome: yes
     home: "{{ NODE_HOME }}/"
+    uid: 1000
     group: root
 
-- name: Make node_modules directory
+- name: Make node home
   file:
-    name: /node_modules
+    path: "{{ NODE_HOME }}"
     state: directory
     owner: "{{ NODE_USER }}"
-    group: root 
-    mode: 0775
+    group: root
+    mode: 0777
 
-- name: Create NODE_HOME/dist  
+- name: Create dist directory 
   file:
     path: "{{ NODE_HOME }}/dist"
     state: directory 
     owner: "{{ NODE_USER }}"
+    group: root
     mode: 0777
-
+ 
 - name: Install nodejs
   yum:
     name: "{{ item }}"
@@ -38,16 +40,19 @@
     - git 
     - which
 
-- name: Copy static files from shared volume
-  command: "cp -R /tmp/static/* {{ NODE_HOME }}/dist"
-  ignore_errors: yes
-
-- name: Symlink package.json
+- name: Create /tmp/django
   file:
-    name: "{{ NODE_ROOT }}/package.json"
-    src: "{{ NODE_HOME }}/package.json"
+    path: /tmp/django
+    state: directory 
     owner: "{{ NODE_USER }}"
-    state: link
+    group: root
+    mode: 0777 
+
+- name: Copy django static files from conductor
+  synchronize:
+    src: /tmp/django/
+    dest: /tmp/django/ 
+    mode: push
 
 - name: Clean npm cache 
   command: npm cache clean -f
@@ -58,40 +63,54 @@
 - name: Install the latest node
   command: n stable
 
-- name: Install node deps
+- name: Copy frontend source files 
+  synchronize:
+    src: "/src/{{ item }}"
+    dest: "{{ NODE_HOME }}"
+  with_items:
+  - bower.json
+  - package.json
+  - gulpfile.js
+  - .bowerrc
+  - src
+
+- name: Install node packages 
   command: npm install
-    chdir="{{ NODE_ROOT }}/"
-  remote_user: "{{ NODE_USER }}"
- 
-- name: Check if gulp is installed
-  stat:
-    path: /usr/bin/gulp
-  register: gulp
+  args:
+    chdir: "{{ NODE_HOME }}"
 
 - name: Install gulp
-  command: npm install -g gulp
-  when: not gulp.stat.exists
+  command: npm install --global gulp-cli 
+
+- name: Install bower
+  command: npm install --global bower
+
+- name: Template entrypoint script
+  template:
+    src: entrypoint.sh.j2
+    dest: /entrypoint.sh
+    mode: 0777
+
+# Create static content and copy back to conductor,
+# making it available for Nginx build. 
 
 - name: Build static assets
   command: gulp build
   args:
-    chdir: "{{ NODE_HOME }}/"
-  environment:
-    NODE_PATH: "{{ NODE_ROOT }}/"
-  remote_user: "{{ NODE_USER }}"
+    chdir: "{{ NODE_HOME }}"
 
-- name: Check if bower is installed 
-  stat:
-    path: /usr/bin/bower
-  register: bower
-
-- name: Install bower
-  command: npm install -g bower
-  when: not bower.stat.exists
-
-- name: Install bower packages 
+- name: Install bower packages
   command: bower install
   args:
-    chdir: "{{ NODE_HOME }}/"
+    chdir: "{{ NODE_HOME }}"
+  remote_user: "{{ NODE_USER }}" 
+
+- name: Copy django assets
+  command: cp -R /tmp/django/ {{ NODE_HOME }}/dist
   remote_user: "{{ NODE_USER }}"
 
+- name: Copy static assets to conductor
+  synchronize:
+    src: "{{ NODE_HOME }}/dist/" 
+    dest: /tmp/dist/
+    mode: pull 

@@ -1,7 +1,7 @@
 .idea/
 .npm/
 .ansible
-dist/
+node_modules/
 *.retry
 __pycache__/
 *.py[cod]
@@ -12,8 +12,7 @@ __pycache__/
 .config
 .local
 .pki
-ansible/roles/django-gulp-nginx-openshift/
-ansible/roles/django-gulp-nginx-kubernetes/
-ansible/shipit-openshift.yml
-ansible/shipit-kubernetes.yml
 ansible-deployment/*
+dist/*
+!dist/README.md
+package-lock.json

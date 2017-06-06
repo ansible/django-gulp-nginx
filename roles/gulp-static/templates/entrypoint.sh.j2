@@ -1,0 +1,21 @@
+#!/bin/bash 
+set -x 
+
+if [ -d "/tmp/django" ]; then 
+   # Copy django static assets
+   mkdir -p {{ NODE_HOME }}/dist   
+   cp -R /tmp/django/* {{ NODE_HOME }}/dist/
+fi
+
+cd {{ NODE_HOME}}
+
+# Install node deps
+npm install
+
+# Build static assets
+gulp build
+
+# Install bower packages 
+su - {{ NODE_USER }} -c "bower install"
+
+$@
