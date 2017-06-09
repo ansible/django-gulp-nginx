@@ -1,10 +1,16 @@
 version: '2'
 
 settings:
+
   conductor:
     base: 'centos:7'
     volumes:
-    - temp-space:/tmp
+    - temp-space:/tmp   # Used to copy static content between containers
+
+  k8s_namespace:
+    name: demo
+    display_name: Ansible Container Demo 
+    description: Django framework demo 
 
 defaults:
   POSTGRES_USER: django
@@ -61,6 +67,8 @@ services:
       - django
       volumes:
       - '$PWD:{{ NODE_HOME }}'
+    openshift:
+      state: absent
 
   nginx:
     from: 'centos:7'
@@ -80,7 +88,7 @@ services:
       command: /bin/false
 
   postgresql:
-    # Uses a pre-build postgresql image 
+    # Uses a pre-built postgresql image from Docker Hub 
     from: ansible/postgresql:latest
     environment:
     - 'POSTGRES_DB={{ POSTGRES_DB }}'
@@ -92,18 +100,21 @@ services:
     expose:
     - 5432
 
-#    options:
-#      openshift:
-#        persistent_volume_claims:
-#        - volume_name: postgres-data
-#          claim_name: postgres-data
-#          access_modes:
-#          - ReadWriteMany
-
-registries: {}
-
 volumes:
   postgres-data:
     docker: {}
+    openshift:
+      access_modes:
+      - ReadWriteMany
+      requested_storage: 3Gi 
+
   temp-space: 
     docker: {}
+    openshift:
+      state: absent
+
+registries:
+   local_openshift:
+     url: https://local.openshift     # The push-to URL, created by chouseknecht.minishift-up role
+     namespace: demo
+     pull_from_url: 172.30.1.1:5000   # The pull-from URL from within minishift
