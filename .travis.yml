@@ -1,6 +1,7 @@
 language: python
 dist: trusty
 sudo: required
+group: edge    # https://blog.travis-ci.com/2017-06-19-trusty-updates-2017-Q2
 services:
 - docker
 before_install:
