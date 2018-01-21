@@ -16,3 +16,4 @@ ansible-deployment/*
 dist/*
 !dist/README.md
 package-lock.json
+temp-space/
