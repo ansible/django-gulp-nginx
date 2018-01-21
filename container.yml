@@ -4,8 +4,6 @@ settings:
 
   conductor:
     base: 'centos:7'
-    volumes:
-    - temp-space:/tmp   # Used to copy static content between containers
 
   k8s_namespace:
     name: demo
@@ -107,11 +105,6 @@ volumes:
       access_modes:
       - ReadWriteMany
       requested_storage: 3Gi 
-
-  temp-space: 
-    docker: {}
-    openshift:
-      state: absent
 
 registries:
    local_openshift:
