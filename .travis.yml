@@ -15,13 +15,13 @@ script:
 - docker-compose version
 - docker info
 - ansible-container --debug --devel build
-- ansible-container run
+- ansible-container --devel run
 - docker ps -a
 - docker images
 - cd test
 - ansible-playbook -i inventory test.yml
 - cd ..
-- ansible-container stop -f
+- ansible-container --devel stop -f
 notifications:
   email: false
   webhooks: https://galaxy.ansible.com/api/v1/notifications/
