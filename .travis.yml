@@ -14,7 +14,7 @@ script:
 - docker version
 - docker-compose version
 - docker info
-- ansible-container --debug build
+- ansible-container --debug --devel build
 - ansible-container run
 - docker ps -a
 - docker images
