@@ -1,0 +1,39 @@
+- name: Clean yum cache
+  command: yum -y clean all
+
+- name: Fix repos
+  command: yum -y --disablerepo=\* --enablerepo=base,updates update
+
+- name: Update all
+  yum:
+    name: '*'
+    state: latest
+
+- name: Install development tools
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+  - yum-utils
+  - '@Development tools'
+
+- name: Install yum repos
+  yum:
+    name: '{{ item }}'
+    state: present
+    disable_gpg_check: yes
+  with_items:
+  - 'https://centos7.iuscommunity.org/ius-release.rpm'
+  - epel-release
+
+- name: Rebuild yum cache 
+  shell: yum -y clean headers && yum -y clean metadata && yum -y makecache
+
+- name: Install python36
+  yum:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+  with_items:
+  - python36u
+  - python36u-devel

@@ -1,25 +1,4 @@
 ---
-- name: Install dumb init
-  get_url:
-    dest: /usr/bin/dumb-init
-    url: https://github.com/Yelp/dumb-init/releases/download/v1.2.0/dumb-init_1.2.0_amd64
-    mode: 0775
-    validate_certs: no
-
-- name: Install epel
-  yum: 
-    name: epel-release
-    state: present 
-    disable_gpg_check: yes
-
-- name: Install python deps
-  yum:
-    name: "{{ item }}"
-    state: latest
-    update_cache: yes
-    disable_gpg_check: yes
-  with_items: "{{ DJANGO_RPM_DEPS }}"
-
 - name: Make Django user
   user:
     name: "{{ DJANGO_USER }}"
@@ -29,6 +8,83 @@
     createhome: yes
     home: "{{ DJANGO_ROOT }}"
 
+- name: Clean yum cache
+  command: yum -y clean all
+
+- name: Fix repos
+  command: yum -y --disablerepo=\* --enablerepo=base,updates update
+
+- name: Update all
+  yum:
+    name: '*'
+    state: latest
+
+- name: Install development tools
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+  - yum-utils
+  - '@Development tools'
+
+- name: Install yum repos
+  yum:
+    name: '{{ item }}'
+    state: present
+    disable_gpg_check: yes
+  with_items:
+  - 'https://centos7.iuscommunity.org/ius-release.rpm'
+  - epel-release
+
+- name: Rebuild yum cache 
+  shell: yum -y clean headers && yum -y clean metadata && yum -y makecache
+
+- name: Install python36
+  yum:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+  with_items:
+  - python36u
+  - python36u-devel
+
+- name: Install python36
+  yum:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+  with_items:
+  - python36u
+  - python36u-devel
+
+- name: Create a virtualenv
+  command: 'python3.6 -m venv {{ DJANGO_VENV }}'
+  args:
+      chdir: /
+
+- name: Set venv permissions
+  file:
+    path: '{{ DJANGO_VENV }}'
+    state: directory
+    owner: '{{ DJANGO_USER }}'
+    group: root 
+    recurse: yes
+
+- name: Install dumb init
+  get_url:
+    dest: /usr/bin/dumb-init
+    url: https://github.com/Yelp/dumb-init/releases/download/v1.2.0/dumb-init_1.2.0_amd64
+    mode: 0775
+    validate_certs: no
+
+- name: Install RPM deps
+  yum:
+    name: "{{ item }}"
+    state: latest
+    update_cache: yes
+    disable_gpg_check: yes
+  with_items: "{{ DJANGO_RPM_DEPS }}"
+
 - name: Create /django 
   file:
     path: "{{ DJANGO_ROOT }}"
@@ -36,21 +92,6 @@
     owner: "{{ DJANGO_USER }}" 
     group: root
     mode: 0775 
-
-- name: Make virtualenv dir
-  file:
-    name: "{{ DJANGO_VENV }}"
-    state: directory
-    owner: "{{ DJANGO_USER }}"
-    group: root
-    mode: 0775
-
-- name: Setup virtualenv
-  command: virtualenv .
-  args:
-    chdir: "{{ DJANGO_VENV }}"
-    creates: "{{ DJANGO_VENV }}/bin/python"
-  remote_user: "{{ DJANGO_USER }}"
 
 - name: Copy core source items 
   synchronize:
@@ -64,7 +105,7 @@
   - requirements.txt
   - requirements.yml
 
-- name: Install requirements
+- name: Install Python requirements
   pip:
     executable: "{{ DJANGO_VENV }}/bin/pip"
     requirements: "{{ DJANGO_ROOT }}/requirements.txt"

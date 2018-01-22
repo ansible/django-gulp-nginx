@@ -5,7 +5,7 @@ settings:
   conductor:
     base: 'centos:7'
     volumes:
-    - temp-space:/tmp
+    - ${PWD}/temp-space:/tmp
 
   k8s_namespace:
     name: demo
@@ -89,28 +89,13 @@ services:
 
   postgresql:
     # Uses a pre-built postgresql image from Docker Hub 
-    from: ansible/postgresql:latest
+    from: 'centos/postgresql-95-centos7:latest'
     environment:
-    - 'POSTGRES_DB={{ POSTGRES_DB }}'
-    - 'POSTGRES_USER={{ POSTGRES_USER }}'
-    - 'POSTGRES_PASS={{ POSTGRES_PASSWORD }}'
-    - 'PGDATA=/var/lib/pgsql/data/userdata'
-    volumes:
-    - postgres-data:/var/lib/pgsql/data
+    - 'POSTGRESQL_DATABASE={{ POSTGRES_DB }}'
+    - 'POSTGRESQL_USER={{ POSTGRES_USER }}'
+    - 'POSTGRESQL_PASSWORD={{ POSTGRES_PASSWORD }}'
     expose:
     - 5432
-
-volumes:
-  postgres-data:
-    docker: {}
-    openshift:
-      access_modes:
-      - ReadWriteMany
-      requested_storage: 3Gi 
-  temp-space:
-    docker: {}
-    openshift:
-      state: absent
 
 registries:
    local_openshift:

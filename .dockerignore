@@ -1,4 +1,11 @@
+.config
+.local
+.cache
+.git
+.mailmap
 dist
 temp-space
 test
 node_modules
+ansible-deployment
+package-lock.json
