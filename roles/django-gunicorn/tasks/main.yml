@@ -133,7 +133,7 @@
 - name: Copy static assets to conductor 
   synchronize:
     src: "{{ DJANGO_STATIC_ROOT}}/"
-    dest: /tmp/django/ 
+    dest: /tmp/dist/ 
     mode: pull
 
 - name: Copy entrypoint

@@ -48,12 +48,6 @@
     group: root
     mode: 0777 
 
-- name: Copy django static files from conductor
-  synchronize:
-    src: /tmp/django/
-    dest: /tmp/django/ 
-    mode: push
-
 - name: Clean npm cache 
   command: npm cache clean -f
 
@@ -104,10 +98,6 @@
   args:
     chdir: "{{ NODE_HOME }}"
   remote_user: "{{ NODE_USER }}" 
-
-- name: Copy django assets
-  command: cp -R /tmp/django/ {{ NODE_HOME }}/dist
-  remote_user: "{{ NODE_USER }}"
 
 - name: Copy static assets to conductor
   synchronize:
